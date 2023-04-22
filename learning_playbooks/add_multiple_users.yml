@@ -1,0 +1,25 @@
+---
+# ansible-playbook -i ../inventories/staging --ask-become-pass add_multiple_users.yml
+
+- hosts: all
+  become: yes
+  vars:
+    users_list:
+    - username: cavani
+    - username: rashford
+    - username: pogba
+    - username: fernandes
+
+  tasks:
+  - name: add group for users
+    group:
+      name: manunited
+      state: present
+
+  - name: user added {{ item.username }}
+    user:
+      name: "{{ item.username }}"
+      create_home: yes
+      groups: manunited
+    with_items: "{{ users_list }}"
+
