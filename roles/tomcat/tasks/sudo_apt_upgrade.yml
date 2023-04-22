@@ -1,0 +1,13 @@
+---
+
+# run the equivalent of ‘apt-get upgrade’ command on all Ubuntu or Debian Linux servers
+# In other words, it will upgrade ALL packages to latest version.
+- apt:
+    upgrade: dist
+
+
+#https://www.cyberciti.biz/faq/ansible-apt-update-all-packages-on-ubuntu-debian-linux/
+#https://www.cyberciti.biz/faq/how-to-find-out-if-my-ubuntudebian-linux-server-needs-a-reboot/
+#-rw-r--r-- 1 root root 39 Apr 22 15:10 /var/run/reboot-required.pkgs
+#-rw-r--r-- 1 root root 32 Apr 22 15:10 /var/run/reboot-required
+

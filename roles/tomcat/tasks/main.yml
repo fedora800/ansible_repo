@@ -1,12 +1,15 @@
 ---
-# tasks file for tomcat
+- hosts: all
+  become: true
+#  roles:
+#    - tomcat
 
-##### need to specify the hosts
+  tasks:
+  - name: 01 / apply sudo apt-get update
+    import_tasks: sudo_apt_update.yml
 
-- name : 01 / apply sudo apt update
-  import_tasks: sudo_apt_update.yml
-- name : 02 / apply sudo apt upgrade
-  import_tasks: sudo_apt_upgrade.yml
+  - name : 02 / apply sudo apt upgrade
+    import_tasks: sudo_apt_upgrade.yml
 
 
 #   Apache Tomcat:
