@@ -5,11 +5,9 @@
 #    - tomcat
 
   tasks:
-  - name: 01 / apply sudo apt-get update
-    import_tasks: sudo_apt_update.yml
-
-  - name : 02 / apply sudo apt upgrade
-    import_tasks: sudo_apt_upgrade.yml
+#  - import_tasks: sudo_apt_update.yml
+#  - import_tasks: sudo_apt_upgrade.yml
+  - import_tasks: install_jdk.yml
 
 
 #   Apache Tomcat:

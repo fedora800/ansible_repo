@@ -1,6 +1,7 @@
 ---
 
 # do this only if the last cache update was more than 3600 seconds ago
-- apt:
+- name: 01 / apply sudo apt-get update
+  apt:
     update_cache: yes
     cache_valid_time: 3600

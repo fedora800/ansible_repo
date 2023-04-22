@@ -1,0 +1,9 @@
+---
+
+# installs whatever version ubuntu has of default-jdk
+# will not install if it already finds its there
+- name : 02 / install default-jdk
+  apt:
+    name: default-jdk
+    state: present
+    update_cache: true
