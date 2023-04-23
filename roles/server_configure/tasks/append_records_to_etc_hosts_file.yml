@@ -1,0 +1,16 @@
+---
+
+# appends a block of hostname and ip records to bottom of /etc/hosts file
+- name: append host and ip records to /etc/hosts file
+  blockinfile:
+    path: /etc/hosts
+    state: present
+    insertafter: EOF
+    backup: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      172.31.20.249   acg-k8-controlp1
+      172.31.17.94    acg-k8-controlp2
+      172.31.30.13    acg-k8-worker1
+      172.31.29.163   acg-k8-worker2
+      172.31.25.15    acg-k8-worker3

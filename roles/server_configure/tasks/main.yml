@@ -1,0 +1,11 @@
+---
+# tasks file for server_configure
+
+ - hosts: all
+   become: true
+
+   tasks:
+   - import_tasks: append_records_to_etc_hosts_file.yml
+
+
+
