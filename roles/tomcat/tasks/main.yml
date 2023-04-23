@@ -12,50 +12,6 @@
 #  - import_tasks: add_user_tomcat.yml
 #  - import_tasks: download_tomcat_package_using_shell_and_curl.yml
 #  - import_tasks: download_tomcat_package_using_get_url.yml
-  - import_tasks: tomcat_files_and_folders_changes.yml
-
-
-#   Apache Tomcat:
-#   1. sudo apt-get update
-#   2. sudo apt-get install default-jdk
-#   3. sudo groupadd tomcat
-#   4. sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
-#   5. curl -O http://redrockdigimark.com/apachemirror/tomcat/tomcat-8/v8.5.31/bin/apache-tomcat-8.5.31.tar.gz
-#   6. sudo mkdir /opt/tomcat
-#   7. sudo tar xzvf apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
-#   8. sudo mkdir /opt/tomcat
-#   9. cd /opt/tomcat
-#   10. sudo chgrp -R tomcat /opt/tomcat
-#   11. sudo chmod -R g+r conf
-#   12. sudo chmod g+x conf
-#   13. sudo chown -R tomcat webapps/ work/ temp/ logs/
-#   14. Add this code to /etc/systemd/system/tomcat.service
-#   [Unit]
-#   Description=Apache Tomcat Web Application Container
-#   After=network.targetd
-#   [Service]
-#   Type=forking
-#   Module 5: Configuration Management with Ansible
-#   © B r a i n 4 c e E d u c a t i o n S o l u t i o n s P v t . L t d
-#   Page 2
-#   Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre
-#   Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
-#   Environment=CATALINA_HOME=/opt/tomcat
-#   Environment=CATALINA_BASE=/opt/tomcat
-#   Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
-#   Environment='JAVA_OPTS=-Djava.awt.headless=true -
-#   Djava.security.egd=file:/dev/./urandom'
-#   ExecStart=/opt/tomcat/bin/startup.sh
-#   ExecStop=/opt/tomcat/bin/shutdown.sh
-#   User=tomcat
-#   Group=tomcat
-#   UMask=0007
-#   RestartSec=10
-#   Restart=always
-#   [Install]
-#   WantedBy=multi-user.target
-#   15. sudo systemctl daemon-reload
-#   16. sudo systemctl start tomcat
-
-
-
+#  - import_tasks: tomcat_files_and_folders_changes.yml
+#  - import_tasks: tomcat_files_and_folders_changes.yml
+  - import_tasks: add_firewall_rule_tomcat.yml
