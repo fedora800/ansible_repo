@@ -1,0 +1,8 @@
+---
+
+# downloads specific package into specific location
+- name : 05 / download apache tomcat v 10.1.8 into /tmp dir
+  shell:
+    cmd: curl -O https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.8/bin/apache-tomcat-10.1.8.tar.gz 
+  args:
+    chdir: "/tmp"

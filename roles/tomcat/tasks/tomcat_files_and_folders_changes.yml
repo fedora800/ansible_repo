@@ -1,0 +1,33 @@
+---
+
+#- name: 06 / Create /opt/tomcat if does not exist
+#  file:
+#    path: /opt/tomcat
+#    state: directory
+#    #mode: '0755'
+#
+#- name: 07 / Extract tomcat pkg into /opt/tomcat
+#  shell:
+#    cmd: tar -xzvf /tmp/apache-tomcat-10.1.8.tar.gz -C /opt/tomcat --strip-components=1
+#
+## step 08 is duplicate of 06, not needed
+## step 09 might not be required, will see
+#
+#- name: 10 / chgrp to tomcat
+#  command: chgrp -R tomcat /opt/tomcat
+
+#- name: 11 / chmod files and subdirectories in /opt/tomcat/conf
+#  command: chmod -R g+r /opt/tomcat/conf
+
+- name: 12 / chmod group execute on /opt/tomcat/conf
+  command: chmod g+x /opt/tomcat/conf
+
+
+#   6. sudo mkdir /opt/tomcat
+#   7. sudo tar xzvf apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
+# **THIS IS BAD STEP - IGNORE***   8. sudo mkdir /opt/tomcat
+#   9. cd /opt/tomcat
+#   10. sudo chgrp -R tomcat /opt/tomcat
+#   11. sudo chmod -R g+r conf
+#   12. sudo chmod g+x conf
+#   13. sudo chown -R tomcat webapps/ work/ temp/ logs/
