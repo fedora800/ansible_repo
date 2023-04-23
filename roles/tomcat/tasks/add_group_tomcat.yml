@@ -1,0 +1,8 @@
+
+---
+
+# creates or ensures that the group user tomcat exists
+- name : 03 / create group user tomcat
+  group:
+    name: tomcat
+    state: present
