@@ -1,0 +1,15 @@
+
+---
+
+# i just copied it from my tomcat user from elsewhere, i need to make this generic ****
+# creates or ensures that the user tomcat exists
+- name : 04 / create user tomcat
+  user:
+    name: tomcat
+    # generated using - $ sudo apt install -y whois ; mkpasswd --method=sha512crypt Password1# 
+    password: '$6$LBHLTvnwY5OtNskb$7CuNLXFoavB8yQQjN54m54YlL36s5y8E3DnSRAuWe05xbNDbHFNiEiqzBUs/z3fl8moAOjoM9AQuN6XsRXt8u1'
+    groups: tomcat              # default = empty
+    state: present
+    #shell: /bin/bash            # default = /bin/bash
+    create_home: true           # default = true
+    home: /opt/tomcat           # default = /home/<username>

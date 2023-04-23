@@ -7,7 +7,9 @@
   tasks:
 #  - import_tasks: sudo_apt_update.yml
 #  - import_tasks: sudo_apt_upgrade.yml
-  - import_tasks: install_jdk.yml
+#  - import_tasks: install_jdk.yml
+#  - import_tasks: add_group_tomcat.yml
+  - import_tasks: add_user_tomcat.yml
 
 
 #   Apache Tomcat:
