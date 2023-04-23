@@ -1,8 +1,8 @@
 ---
+# tasks file for tomcat
+
 - hosts: all
   become: true
-#  roles:
-#    - tomcat
 
   tasks:
 #  - import_tasks: sudo_apt_update.yml
