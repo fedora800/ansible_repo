@@ -1,6 +1,5 @@
 [k8_nodes_private_ips]
-acg_k8_controlp2       ansible_host=172.31.17.94
-acg_k8_worker1         ansible_host=172.31.30.13
-acg_k8_worker2         ansible_host=172.31.29.163
-acg_k8_worker3         ansible_host=172.31.25.15
-
+acg_k8_controlp2       ansible_host=172.31.18.228
+acg_k8_worker1         ansible_host=172.31.17.206
+acg_k8_worker2         ansible_host=172.31.27.142
+acg_k8_worker3         ansible_host=172.31.31.203

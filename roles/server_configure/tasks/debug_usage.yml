@@ -1,0 +1,30 @@
+---
+- hosts: all
+
+  tasks:
+  - name: Print a simple statement when task runs against a remote host
+    debug:
+      msg: "Hello World! Welcome to my ansible debug task"
+
+  - name: Here we are checking ansible_hostname (actual remote host name from returned values)
+    debug:
+      msg: "hostname is {{ ansible_hostname }}"
+
+  - name: Here we are checking inventory_hostname (our aliases from inventory file)
+    debug:
+      msg: "hostname is {{ inventory_hostname }}"
+
+  - name: Display all variables/facts known for a host
+    ansible.builtin.debug:
+      var: hostvars[inventory_hostname]
+      verbosity: 4
+
+  - name: Print system uptime using shell and register modules
+    shell: uptime -p
+    register: reg_system_uptime
+
+  - name: Print uptime of managed node using values saved by register module
+    debug:
+      msg: "{{ reg_system_uptime }}"              # shows all fields
+    #  msg: "{{ reg_system_uptime.stdout }}"       # only the stdout
+
