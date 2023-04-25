@@ -7,6 +7,6 @@
 
   tasks:
 
-  - name: Print the value of a variable
+  - name: Print the value of local defined variables
     debug:
       msg: "{{ greetings }}, Welcome to {{ site }}."
