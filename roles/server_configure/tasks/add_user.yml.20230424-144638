@@ -1,0 +1,28 @@
+
+---
+
+# i just copied it from my tomcat user from elsewhere, i need to make this generic ****
+# creates or ensures that the user tomcat exists
+- name: 04 / create user tomcat
+  user:
+    name: tomcat
+    # generated using - $ sudo apt install -y whois ; mkpasswd --method=sha512crypt Password1# 
+    password: '$6$LBHLTvnwY5OtNskb$7CuNLXFoavB8yQQjN54m54YlL36s5y8E3DnSRAuWe05xbNDbHFNiEiqzBUs/z3fl8moAOjoM9AQuN6XsRXt8u1'
+    #comment: "Tomcat nologin user"   # sets description of the user account
+    groups: tomcat              # default = empty
+    #append: yes                # default = yes
+                                # If true, add the user to the groups specified in groups.
+                                # If false, user will only be added to the groups specified in groups, removing them from all other groups.
+    state: present
+    #shell: /bin/bash            # default = /bin/bash
+    #shell: /sbin/login         # for a nologin user
+    #shell: /bin/false         # to understand diff between nologin and false
+    create_home: true           # default = true
+    home: /opt/tomcat           # default = /home/<username>
+
+
+ #- name: User added {{ item.username }}
+ - name: User added 
+   user:
+     name: "{{ item.username }}"
+     with_items: "{{ users_to_add }}"

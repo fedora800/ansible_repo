@@ -1,0 +1,12 @@
+---
+
+- hosts: all
+  vars:
+    greetings: Hello World!
+    site: www.example.com
+
+  tasks:
+
+  - name: Print the value of a variable
+    debug:
+      msg: "{{ greetings }}, Welcome to {{ site }}."

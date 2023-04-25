@@ -3,11 +3,14 @@
 
  - hosts: all
    become: true
+   vars_files:
+      - "../vars/main.yml"
 
    tasks:
 #   - import_tasks: append_records_to_etc_hosts_file.yml
 #   - import_tasks: run_shell_cmd_lsb_release.yml
-   - import_tasks: generate_password.yml
+#   - import_tasks: generate_password.yml
+   - import_tasks: add_user.yml
 
 
 

@@ -10,7 +10,7 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
       172.31.20.249   acg-k8-controlp1
-      172.31.17.94    acg-k8-controlp2
-      172.31.30.13    acg-k8-worker1
-      172.31.29.163   acg-k8-worker2
-      172.31.25.15    acg-k8-worker3
+      172.31.18.228   acg-k8-controlp2
+      172.31.17.206   acg-k8-worker1
+      172.31.27.142   acg-k8-worker2
+      172.31.31.203   acg-k8-worker3

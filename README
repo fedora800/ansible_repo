@@ -1,0 +1,6 @@
+# first export the config variable
+export ANSIBLE_CONFIG=~/git-projects/ansible_repo/ansible.cfg 
+
+# we can then run playbook like such 
+cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks
+$ ansible-playbook main.yml  --ask-become-pass
