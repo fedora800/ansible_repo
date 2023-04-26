@@ -1,39 +1,17 @@
-
 ---
+- hosts: all
+  become: yes
 
-# - name: Adding users - using with_items
-#   user:
-#     name: "{{ item }}"
-#     state: present
-#   with_items:
-#      - john
-#      - mike
-#      - andrew
+  tasks:
+  - name: Print the hostnames in inventory
+    debug:
+      msg: "{{ inventory_hostname }}"
 
- - name: Adding users - using loop
-   user:
-     name: '{{ item.name }}'
-     uid: '{{ item.uid }}'
-     state: present
+  - name: Change the remote hostname using inventory name
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
 
-   loop:
-     - name: roger
-       uid: 1020
-     - name: tom
-       uid: 1030
-     - name: winston
-       uid: 1040
-
-# - name: Adding users - using loop - json  (NOT WORKING YET)
-#   user:
-#     name: "{{ item.name }}"
-#     uid: "{{ item.uid }}"
-#     state: present
-#
-#     loop:
-#       - { name: john ,   uid: 1020 }
-#       - { name: mike ,   uid: 1030 }
-#       - { name: andrew , uid: 1040 }
-#     # this in JSON format is same as above
-
+  - name: Here we are checking ansible_hostname (actual REMOTE host name from returned values)
+    debug:
+      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
 

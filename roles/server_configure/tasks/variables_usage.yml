@@ -9,4 +9,4 @@
 
   - name: Print the value of local defined variables
     debug:
-      msg: "{{ greetings }}, Welcome to {{ site }}."
+      msg: "{{ greetings }}, Welcome to {{ site }}. We are on host {{ ansible_hostname }}"

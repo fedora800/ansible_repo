@@ -6,11 +6,11 @@
     debug:
       msg: "--debug message 001--"
 
-  - name: Here we are checking ansible_hostname (actual remote host name from returned values)
+  - name: Here we are checking and showing multiple ansible facts (from REMOTE host from returned values)
     debug:
-      msg: "hostname is {{ ansible_hostname }}"
+      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
 
-  - name: Here we are checking inventory_hostname (our aliases from inventory file)
+  - name: Here we are checking inventory_hostname (our LOCAL aliases from inventory file)
     debug:
       msg: "hostname is {{ inventory_hostname }}"
 
@@ -18,6 +18,15 @@
     ansible.builtin.debug:
       var: hostvars[inventory_hostname]
       verbosity: 4
+
+  - name: Printing variables that were defined in the task locally 
+    vars:
+      UBUNTU_VERSION: 22.04
+      RELEASE: APRIL 2022
+    debug:
+      msg: Latest version of Ubuntu is {{ UBUNTU_VERSION }} and it is releasing on {{ RELEASE }}
+      #msg: "{{ UBUNTU_VERSION }}"
+
 
   - name: Print system uptime using shell and register modules
     shell: uptime -p
@@ -27,4 +36,58 @@
     debug:
     #  msg: "{{ reg_system_uptime }}"              # shows all fields
       msg: "{{ reg_system_uptime.stdout }}"       # only the stdout
+
+  - name: Run free memory check command
+    command: free -h
+    register: reg_free_mem
+
+  - name: Now print the register variable values without using msg
+    debug:
+      var: reg_free_mem.stdout_lines
+      # we will need to run the playbook with -v option for below verbosity to take affect
+      verbosity: 1
+
+  - name: List debug messages
+    debug:
+      msg:
+        - India
+        - Australia
+        - Japan
+
+  - name: Dict debug messages
+    debug:
+      msg:
+        Country: India
+        State: Goa
+        City: Panaji
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.
+
+When using the msg module, you should use double curly braces to print the variable value. But using the var parameter, you can just pass the variable name without any braces or quotes.
+eg - 
+    - name: Printing variable
+      vars:
+        UBUNTU_VERSION: 22.04
+      debug:
+        var: UBUNTU_VERSION
+
+
+the task debug module accepts arguments through the msg parameter
+It is always recommended to use double quotes when working with msg parameter.
+
+
+3. Debug Module With Verbosity Parameter
+Ansible supports four level of verbosity. By default verbosity is set to zero. To print the messages you have to increase the verbosity using -v flag.
+
+$ ansible all -m shell -a "uptime" -v # LEVEL 1
+$ ansible all -m shell -a "uptime" -vv # LEVEL 2
+$ ansible all -m shell -a "uptime" -vvv # LEVEL 3
+$ ansible all -m shell -a "uptime" -vvvv # LEVEL 4
+
+https://ostechnix.com/ansible-debug-module/
+
+skipping: [rocky.anslab.com] => {"skipped_reason": "Verbosity threshold not met."}
+Since I have set the verbosity to two, I have to use the -vv flag to print the messages. Similarly according to the verbosity level you set in the task, you should use the corresponding level of -v flag when running the playbook.
 
