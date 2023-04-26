@@ -1,9 +1,12 @@
 
 ---
+# bunch of plays are not working, i need to test each and finalize
+# remove UNTESTED once it works
+
 
 # i just copied it from my tomcat user from elsewhere, i need to make this generic ****
 # creates or ensures that the user tomcat exists
-- name: 04 / create user tomcat
+- name: 04 / create user tomcat       UNTESTED
   user:
     name: tomcat
     # generated using - $ sudo apt install -y whois ; mkpasswd --method=sha512crypt Password1# 
@@ -21,8 +24,45 @@
     home: /opt/tomcat           # default = /home/<username>
 
 
- #- name: User added {{ item.username }}
- - name: User added 
+ - name: User added {{ item.username }}  - one user       UNTESTED
    user:
      name: "{{ item.username }}"
      with_items: "{{ users_to_add }}"
+
+ - name: Adding users - using with_items - multiple users       UNTESTED
+   user:
+     name: "{{ item }}"
+     state: present
+   with_items:
+      - john
+      - mike
+      - andrew
+--------------------------------------------------------------------------------
+
+ - name: Adding users - using loop       UNTESTED
+   user:
+     name: '{{ item.name }}'
+     uid: '{{ item.uid }}'
+     state: present
+
+   loop:
+     - name: roger       UNTESTED
+       uid: 1020
+     - name: tom       UNTESTED
+       uid: 1030
+     - name: winston       UNTESTED
+       uid: 1040
+
+# - name: Adding users - using loop - json  (NOT WORKING YET)                UNTESTED
+#   user:
+#     name: "{{ item.name }}"
+#     uid: "{{ item.uid }}"
+#     state: present
+#
+#     loop:
+#       - { name: john ,   uid: 1020 }
+#       - { name: mike ,   uid: 1030 }
+#       - { name: andrew , uid: 1040 }
+#     # this in JSON format is same as above
+
+

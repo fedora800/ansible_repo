@@ -1,0 +1,40 @@
+
+# need to make sure first (using apt list pkg -a) if that version is available to install on this OS
+#- name: apt install and/or ensure php8.1 is installed - specific version
+#  apt:
+#    name: php8.1
+#    #name: php8.1i=8.1+92ubuntu1
+#    state: present
+#    update_cache: true
+#  become: true
+
+- name: apt install multiple packages
+  apt:
+    name:
+      - php8.1
+      - vim 
+    state: present
+    update_cache: true
+  become: true
+
+#- name: install redis on Debian based distros 
+#  apt:
+#    name: redis-server
+#    state: present
+#    update_cache: true
+#  become: true
+#  when: ansible_os_family == 'Debian'
+#
+#- name: install redis on RHEL based distros
+#  yum:
+#    name: "{{ item }}"
+#    state: present
+#    update_cache: true
+#  become: true
+#  loop:
+#    - epel-release
+#    - redis
+#  when: ansible_os_family == 'RedHat'
+#
+
+
