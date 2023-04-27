@@ -6,9 +6,17 @@
     debug:
       msg: "--debug message 001--"
 
+  # ansible all -m setup will show all the facts
   - name: Here we are checking and showing multiple ansible facts (from REMOTE host from returned values)
     debug:
-      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }} a-distrel={{ ansible_distribution_release }} {{ ansible_distribution_version }}
+            a-cpucores={{ ansible_processor_vcpus }} a-nprocs={{ ansible_processor_nproc }}
+            a-type={{ ansible_product_name }} a-free-mem={{ ansible_memfree_mb }} 
+            a-cfgfile={{ ansible_config_file }} a-user={{ ansible_user_id }} a-playbookdir={{ playbook_dir }}
+            a-inventory={{ inventory_file }} "
+#      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something
+    tags:
+      - some-facts
 
   - name: Here we are checking inventory_hostname (our LOCAL aliases from inventory file)
     debug:
@@ -18,6 +26,8 @@
     ansible.builtin.debug:
       var: hostvars[inventory_hostname]
       verbosity: 4
+    tags:
+      - variables
 
   - name: Printing variables that were defined in the task locally 
     vars:
@@ -26,6 +36,8 @@
     debug:
       msg: Latest version of Ubuntu is {{ UBUNTU_VERSION }} and it is releasing on {{ RELEASE }}
       #msg: "{{ UBUNTU_VERSION }}"
+    tags:
+      - variables
 
 
   - name: Print system uptime using shell and register modules
@@ -46,6 +58,8 @@
       var: reg_free_mem.stdout_lines
       # we will need to run the playbook with -v option for below verbosity to take affect
       verbosity: 1
+    tags:
+      - variables
 
   - name: List debug messages
     debug:
