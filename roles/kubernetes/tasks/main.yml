@@ -1,0 +1,15 @@
+---
+# tasks file for kubernetes
+
+ - hosts: all
+   become: true
+
+   tasks:
+   - import_tasks: check_prerequisites.yml
+#   - import_tasks: run_shell_cmd_lsb_release.yml
+#   - import_tasks: generate_password.yml
+#   - import_tasks: add_user.yml
+#    - import_tasks: install_with_apt.yml
+
+
+

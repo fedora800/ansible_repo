@@ -11,7 +11,7 @@
     debug:
       msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }} a-distrel={{ ansible_distribution_release }} {{ ansible_distribution_version }}
             a-cpucores={{ ansible_processor_vcpus }} a-nprocs={{ ansible_processor_nproc }}
-            a-type={{ ansible_product_name }} a-free-mem={{ ansible_memfree_mb }} 
+            a-type={{ ansible_product_name }} a-total-mem={{ ansible_memory_mb.real.total }} 
             a-cfgfile={{ ansible_config_file }} a-user={{ ansible_user_id }} a-playbookdir={{ playbook_dir }}
             a-inventory={{ inventory_file }} "
 #      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something   # dictionary way

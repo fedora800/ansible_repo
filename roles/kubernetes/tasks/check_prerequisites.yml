@@ -1,0 +1,39 @@
+---
+
+# - name : check if new nodes are accessible	NOT-WORKING
+#   register: reg_ping
+#   debug:
+#     msg: reg_ping
+
+# - name : check if host satisfies minimum memory criteria (2 GB)
+#   debug: 
+#     var: ansible_memory_mb
+#   debug: 
+#     msg: "total RAM is {{ ansible_memory_mb.real.total }}"
+#   fail: 
+#     msg: "not enough RAM"
+#   when: ansible_memory_mb.real.total < 4096
+
+# - name: After version 2.7 both 'msg' and 'fail_msg' can customize failing assertion message
+#   ansible.builtin.assert:
+#     that:
+#       - my_param <= 100
+#       - my_param >= 0
+#     fail_msg: "'my_param' must be between 0 and 100"
+#     success_msg: "'my_param' is between 0 and 100"
+
+- name : check if host has minimum memory criteria (2 GB)       NOT-WORKING
+  debug:
+    msg: "total RAM is {{ ansible_memory_mb.real.total }}"
+  ansible.builtin.assert:
+    that:
+      - ansible_memory_mb.real.total >= 4096
+    fail_msg: "'ansible_memory_mb.real.total' must be above 4096"
+    success_msg: "'ansible_memory_mb.real.total' is above 4096"
+
+- name: check memory 2
+  debug: var=ansible_memory_mb
+  debug: msg="total RAM is {{ ansible_memory_mb.real.total }}"
+  fail: 
+    msg: "not enough RAM"
+  when: ansible_memory_mb.real.total < 4096
