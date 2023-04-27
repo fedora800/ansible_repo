@@ -61,33 +61,39 @@
         State: Goa
         City: Panaji
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.
+# --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
+# If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.
+# 
+# When using the msg module, you should use double curly braces to print the variable value. But using the var parameter, you can just pass the variable name without any braces or quotes.
+# eg - 
+#     - name: Printing variable
+#       vars:
+#         UBUNTU_VERSION: 22.04
+#       debug:
+#         var: UBUNTU_VERSION
+# 
+# 
+# the task debug module accepts arguments through the msg parameter
+# It is always recommended to use double quotes when working with msg parameter.
+# 
+# 
+# 3. Debug Module With Verbosity Parameter
+# Ansible supports four level of verbosity. By default verbosity is set to zero. To print the messages you have to increase the verbosity using -v flag.
+# 
+# $ ansible all -m shell -a "uptime" -v # LEVEL 1
+# $ ansible all -m shell -a "uptime" -vv # LEVEL 2
+# $ ansible all -m shell -a "uptime" -vvv # LEVEL 3
+# $ ansible all -m shell -a "uptime" -vvvv # LEVEL 4
+# 
+# https://ostechnix.com/ansible-debug-module/
+# 
+# skipping: [rocky.anslab.com] => {"skipped_reason": "Verbosity threshold not met."}
+# Since I have set the verbosity to two, I have to use the -vv flag to print the messages. Similarly according to the verbosity level you set in the task, you should use the corresponding level of -v flag when running the playbook.
+# 
 
-When using the msg module, you should use double curly braces to print the variable value. But using the var parameter, you can just pass the variable name without any braces or quotes.
-eg - 
-    - name: Printing variable
-      vars:
-        UBUNTU_VERSION: 22.04
-      debug:
-        var: UBUNTU_VERSION
 
 
-the task debug module accepts arguments through the msg parameter
-It is always recommended to use double quotes when working with msg parameter.
 
 
-3. Debug Module With Verbosity Parameter
-Ansible supports four level of verbosity. By default verbosity is set to zero. To print the messages you have to increase the verbosity using -v flag.
-
-$ ansible all -m shell -a "uptime" -v # LEVEL 1
-$ ansible all -m shell -a "uptime" -vv # LEVEL 2
-$ ansible all -m shell -a "uptime" -vvv # LEVEL 3
-$ ansible all -m shell -a "uptime" -vvvv # LEVEL 4
-
-https://ostechnix.com/ansible-debug-module/
-
-skipping: [rocky.anslab.com] => {"skipped_reason": "Verbosity threshold not met."}
-Since I have set the verbosity to two, I have to use the -vv flag to print the messages. Similarly according to the verbosity level you set in the task, you should use the corresponding level of -v flag when running the playbook.
 
