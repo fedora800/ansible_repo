@@ -14,7 +14,14 @@
             a-type={{ ansible_product_name }} a-free-mem={{ ansible_memfree_mb }} 
             a-cfgfile={{ ansible_config_file }} a-user={{ ansible_user_id }} a-playbookdir={{ playbook_dir }}
             a-inventory={{ inventory_file }} "
-#      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something
+#      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something   # dictionary way
+    tags:
+      - some-facts
+
+  - name: Get ansible facts as variables, filter them, and displaying them using a playbook
+    debug:
+#      var: ansible_facts["cmdline"]
+      var: ansible_facts["all_ipv6_addresses"]                         # list way
     tags:
       - some-facts
 
@@ -74,6 +81,49 @@
         Country: India
         State: Goa
         City: Panaji
+
+  - name: Display the variable data type
+    debug:
+      msg: 
+        - " Data type of 'ansible_architecture'  is {{ ansible_architecture | type_debug }} "
+        - " Data type of 'ansible_apparmor' is {{ ansible_apparmor | type_debug }} "
+        - " Data type of 'ansible_all_ipv4_addresses' is {{ ansible_all_ipv4_addresses | type_debug }} "
+
+  - name: Simply printing the value of fact which is Ansible UnSafe Text type
+    debug:
+      msg: "{{ ansible_architecture }}"
+    tags:
+      - facts-diff-ways
+
+  - name: Accessing an element of dictionary facts  (ie one of the facts output block displayed with { } )
+    debug:
+      msg: "{{ansible_apparmor.status}}  {{ ansible_default_ipv4.address }} {{ ansible_dns.nameservers }}  {{ ansible_proc_cmdline.BOOT_IMAGE }} {{ ansible_lsb.description }}"
+    tags:
+      - facts-diff-ways
+
+  - name: Accessing the list facts (ie a fact in a block of [ ] )
+    debug:
+      msg: "{{ansible_all_ipv4_addresses}}  {{ ansible_all_ipv6_addresses }}  {{ ansible_mounts }}"
+    tags:
+      - facts-diff-ways
+
+  - name: Accessing specific elements from a list of facts
+    debug:
+      msg: "{{ ansible_all_ipv6_addresses[1] }}  {{ ansible_mounts[0].device }}"
+    tags:
+      - facts-diff-ways
+
+  - name: Go through a facts dictionary using a loop
+    debug:
+#      msg: "Mount Point {{item.mount}} is at {{item.block_used/item.block_total*100}} percent "
+      msg: " XX11 {{ index }} XX22 - YY11 {{ item }} YY22"
+    loop: "{{ansible_mounts}}"
+#  loop: "{{ items|flatten(levels=1) }}"
+    loop_control:
+      index_var: index
+#    when: "{{ ansible_mounts[].fstype == 'ext4'}}"
+    tags:
+      - facts-diff-ways-xxx
 
 # --------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------
