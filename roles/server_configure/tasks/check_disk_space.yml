@@ -1,0 +1,20 @@
+---
+
+- hosts: all
+  become: yes
+
+  tasks:
+
+  - name: Check /tmp freespace
+    shell: df /tmp | awk '{print $4}' | tail -1
+    register: reg_tmp_space_free
+
+  - name: Print the variable value
+    debug:
+      msg: "free space = {{ reg_tmp_space_free.stdout }}"
+
+  - name: do the fail task
+    fail:
+      msg: /tmp does not have the minimum space required to continue (3Gb requested). 
+    #when: reg_tmp_space_free.stdout|float is lt 3000000
+    when: reg_tmp_space_free.stdout|float is lt 30000000   # 30GB

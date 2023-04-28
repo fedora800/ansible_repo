@@ -6,6 +6,11 @@
   shell: 
     cmd: lsb_release -a
   register: reg_os_info     # output is saved in this variable
+  tags:
+    - check_release
 
-- debug:
-    var="reg_os_info.stdout_lines + [ reg_os_info.stderr_lines ]"
+- name: print the variable
+  debug:
+    msg: "var = {{ reg_os_info.stdout_lines }} "
+  tags:
+    - check_release

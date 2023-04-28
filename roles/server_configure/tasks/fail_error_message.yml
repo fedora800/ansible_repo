@@ -1,0 +1,51 @@
+---
+
+- hosts: all
+  tasks:
+
+  - name: Set command details
+    set_fact:
+      test_cmd: "hostname -f"
+
+  - name: "run command on remote host"
+    command: "{{ test_cmd }}"
+    register: reg_out_var
+
+  - name: fail message
+    fail:
+      msg: "failed - invalid machine."
+    when: "not 'worker1' in reg_out_var.stdout"
+
+# output looks like below - 
+# TASK [fail message] ********************************************************************************************
+# Thursday 27 April 2023  15:11:09 +0000 (0:00:00.687)       0:00:03.342 ******** 
+# fatal: [acg-k8-controlp2]: FAILED! => {"changed": false, "msg": "failed - invalid machine."}
+# skipping: [acg-k8-worker1]
+# fatal: [acg-k8-worker2]: FAILED! => {"changed": false, "msg": "failed - invalid machine."}
+# fatal: [acg-k8-worker3]: FAILED! => {"changed": false, "msg": "failed - invalid machine."}
+
+  - name: Print the msg
+    debug:
+      msg: "{{ reg_out_var.stdout }}"
+
+
+
+- name: Test command
+  hosts: localhost
+  tasks:
+    - name: Set command details
+      set_fact:
+    	test_cmd: "hostname -f"
+
+    - name: "run command on localmachine"
+      command: "{{ test_cmd }}"
+      register: out
+
+    - name: fail message
+      fail:
+    	msg: "failed - invalid machine."
+      when: "{{ 'mymachine' in out.stdout }}"
+
+    - name: Print the msg
+      debug:
+    	msg: "{{ out.stdout }}"

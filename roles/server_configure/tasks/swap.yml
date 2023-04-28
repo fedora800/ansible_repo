@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+
+  # run swapon --show to check
+  - name: Disable swap (if configured).
+    command: swapoff -a
+    tags: ['skip_ansible_lint']
+  
+  - name: Ensure swap file doesn't exist (if configured).
+    file:
+      path: "{{ swap_file_path }}"
+      state: absent"
+
+  - name: Check if any swap file is enabled
+    # grep -w because I don't want /swap matching /swapfile, for example
+    ansible.builtin.shell: "swapon --show | grep -w {{ item.item }}"
+    register: swap_enabled
+    loop: "{{ swap_file_check.results }}"
+    changed_when: false
+    failed_when: false
+
+
+# https://codeberg.org/ansible/swap/src/branch/main/tasks/swap.yml
+# https://supportex.net/blog/2014/10/ansible-add-swap-linux-box/
+
+
