@@ -1,0 +1,102 @@
+---
+
+- hosts: all
+  become: true
+
+  tasks:
+  
+    - name: Un-install old docker package versions, if any
+      apt:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - docker 
+        - docker-engine 
+        - docker.io 
+        - containerd 
+        - runc
+  
+    - name: Update the apt package index and install packages to allow apt to use a repository over HTTPS
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+         - ca-certificates
+         - curl
+
+    - name: Ensure additional dependencies (gnupg) are installed 
+      apt:
+        name: gnupg
+        state: present
+      when: ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('20.04', '>=')
+
+
+#     - name: Add Docker' official GPG key
+#       apt_key:
+#         url: https://download.docker.com/linux/ubuntu/gpg
+#        state: present
+
+    - name: Add Docker apt key
+      ansible.builtin.get_url:
+        url: "https://download.docker.com/linux/ubuntu/gpg"
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+        force: true
+      register: add_repository_key
+
+
+    - name: Add Docker Repository  **note i am hardcoding ubuntu jammy here for now **
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+#echo \
+#  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+#  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+#  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+#     - name: Verify that we have the key with the fingerprint
+#       apt_key:
+#         id: 0EBFCD88
+#         state: present
+
+## now install docker engine
+
+    - name: Update the apt package index and install docker packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+	- install
+	- docker-ce
+	- docker-ce-cli
+	- containerd.io
+	- docker-buildx-plugin
+	- docker-compose-plugin
+# --------------------------------------------------------------------------------
+
+  #       - apt-transport-https
+  #       - software-properties-common
+
+# https://github.com/geerlingguy/ansible-role-docker/blob/master/tasks/setup-Debian.yml
+
+#     - name: Add signing key
+#       ansible.builtin.apt_key:
+#         url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+#         state: present
+# 
+#     - name: Add repository into sources list
+#       ansible.builtin.apt_repository:
+#         repo: "deb [arch={{ ansible_architecture }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+#         state: present
+#         filename: docker
+
+
+
+
+
+
+

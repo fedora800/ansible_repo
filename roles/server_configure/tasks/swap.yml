@@ -25,5 +25,6 @@
 
 # https://codeberg.org/ansible/swap/src/branch/main/tasks/swap.yml
 # https://supportex.net/blog/2014/10/ansible-add-swap-linux-box/
+# https://github.com/geerlingguy/ansible-role-swap
 
 

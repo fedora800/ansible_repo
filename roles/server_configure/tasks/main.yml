@@ -12,6 +12,6 @@
 #    - import_tasks: generate_password.yml
 #    - import_tasks: add_user.yml
     - import_tasks: install_with_apt.yml
-
+# lot of things in docker.yml to copy over here in server configure
 
 
