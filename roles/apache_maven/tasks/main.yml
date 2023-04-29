@@ -3,33 +3,28 @@
 
 # ** NOTE ** i am using a simplified/cleaner version of the maven install 
 
-- hosts: all
-  become: true
+- name : 01 / apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
 
-  tasks:
-  - name : 01 / apt update
-    apt:
-      update_cache: yes
-      cache_valid_time: 3600
+- name : 02 / install maven using apt
+  apt: 
+    name: maven
+    state: present
+    update_cache: yes
 
-  - name : 02 / install maven using apt
-    apt: 
-      name: maven
-      state: present
-      update_cache: yes
+- name : 03 / check if maven installed and output the version
+  shell: 
+    cmd: mvn -version
+  register: reg_mvn_version_info     # output is saved in this variable
 
-  - name : 03 / check if maven installed and output the version
-    shell: 
-      cmd: mvn -version
-    register: reg_mvn_version_info     # output is saved in this variable
+- name : 04 / show debug info
+  debug:
+    msg:
+    - "Remote host {{ inventory_hostname }} has gateway {{ ansible_default_ipv4.gateway }}"
+    - "The maven version is {{ reg_mvn_version_info.stdout }}"
 
-  - name : 04 / show debug info
-    debug:
-      msg:
-      - "Remote host {{ inventory_hostname }} has gateway {{ ansible_default_ipv4.gateway }}"
-      - "The maven version is {{ reg_mvn_version_info.stdout }}"
-
-  - name : 05 / list all known variables and facts
-    debug:
-      var: hostvars[inventory_hostname]
-
+- name : 05 / list all known variables and facts
+  debug:
+    var: hostvars[inventory_hostname]
