@@ -1,18 +1,12 @@
 ---
 # tasks file for tomcat
 
-- hosts: all
-  become: true
-
-  tasks:
-#  - import_tasks: sudo_apt_update.yml
-#  - import_tasks: sudo_apt_upgrade.yml
-#  - import_tasks: install_jdk.yml
-#  - import_tasks: add_group_tomcat.yml
-#  - import_tasks: add_user_tomcat.yml
-#  - import_tasks: download_tomcat_package_using_shell_and_curl.yml
-#  - import_tasks: download_tomcat_package_using_get_url.yml
-#  - import_tasks: tomcat_files_and_folders_changes.yml
-#  - import_tasks: tomcat_files_and_folders_changes.yml
-  - import_tasks: add_firewall_rule_tomcat.yml
+- import_tasks: sudo_apt_update.yml
+- import_tasks: sudo_apt_upgrade.yml
+- import_tasks: install_jdk.yml
+- import_tasks: add_group_tomcat.yml
+- import_tasks: add_user_tomcat.yml
+- import_tasks: download_tomcat_package_using_shell_and_curl.yml
+- import_tasks: tomcat_files_and_folders_changes.yml
+- import_tasks: add_firewall_rule_tomcat.yml
 

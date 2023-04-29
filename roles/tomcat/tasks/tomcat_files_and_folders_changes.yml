@@ -1,41 +1,41 @@
 ---
 
-#- name: 06 / Create /opt/tomcat if does not exist
-#  file:
-#    path: /opt/tomcat
-#    state: directory
-#    #mode: '0755'
-#
-#- name: 07 / Extract tomcat pkg into /opt/tomcat
-#  shell:
-#    cmd: tar -xzvf /tmp/apache-tomcat-10.1.8.tar.gz -C /opt/tomcat --strip-components=1
-#
-## step 08 is duplicate of 06, not needed
-## step 09 might not be required, will see
-#
-#- name: 10 / chgrp to tomcat
-#  command: chgrp -R tomcat /opt/tomcat
+- name: 06 / Create /opt/tomcat if does not exist
+  file:
+   path: /opt/tomcat
+   state: directory
+   #mode: '0755'
 
-#- name: 11 / chmod files and subdirectories in /opt/tomcat/conf
-#  command: chmod -R g+r /opt/tomcat/conf
+- name: 07 / Extract tomcat pkg into /opt/tomcat
+  shell:
+    cmd: tar -xzvf /tmp/apache-tomcat-10.1.8.tar.gz -C /opt/tomcat --strip-components=1
 
-#- name: 12 / chmod group execute on /opt/tomcat/conf
-#  command: chmod g+x /opt/tomcat/conf
+# step 08 is duplicate of 06, not needed
 
-#- name: 13 / chown set owner on some tomcat directories with tomcat
-#  command: chown -R tomcat /opt/tomcat/{{ item }}
-#  with_items:
-#    - logs
-#    - temp
-#    - webapps
-#    - work
+# step 09 not required
 
-#- name: 14 / copy tomcat service file from local to remote hosts
-#  copy:
-#    src: ../files/tomcat.service
-#    dest: /etc/systemd/system/
-#    mode: 0755
+- name: 10 / chgrp to tomcat
+  command: chgrp -R tomcat /opt/tomcat
 
+- name: 11 / chmod files and subdirectories in /opt/tomcat/conf
+  command: chmod -R g+r /opt/tomcat/conf
+
+- name: 12 / chmod group execute on /opt/tomcat/conf
+  command: chmod g+x /opt/tomcat/conf
+
+- name: 13 / chown set owner on some tomcat directories with tomcat
+  command: chown -R tomcat /opt/tomcat/{{ item }}
+  with_items:
+    - logs
+    - temp
+    - webapps
+    - work
+
+- name: 14 / copy tomcat service file from local to remote hosts
+  copy:
+    src: ../files/tomcat.service
+    dest: /etc/systemd/system/
+    mode: 0755
 
 - name: 15 / daemon reload
   systemd:
