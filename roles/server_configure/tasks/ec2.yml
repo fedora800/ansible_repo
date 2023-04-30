@@ -1,0 +1,12 @@
+---
+- name: Gather EC2 instance metadata
+  action: ec2_facts
+
+- name: Stop application on {{ansible_hostname}}
+  command: wget "http://{{tomcat_user}}:{{tomcat_pwd}}@{{ansible_ec2_public_ipv4}}:8080/manager/text/stop?path=/HelloWorld-Maven" -O - -q
+
+
+- name: Undeploy application on {{ansible_hostname}}
+  command: wget "http://{{tomcat_user}}:{{tomcat_pwd}}@{{ansible_ec2_public_ipv4}}:8080/manager/text/undeploy?path=/HelloWorld-Maven" -O - -q
+
+

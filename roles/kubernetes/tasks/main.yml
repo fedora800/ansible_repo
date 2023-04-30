@@ -1,16 +1,14 @@
 ---
 # tasks file for kubernetes
 
- - hosts: all
-   become: true
+tasks:
+  - import_tasks: check_prerequisites.yml
+  - import_tasks: run_shell_cmd_lsb_release.yml
+  - import_tasks: generate_password.yml
+  - import_tasks: add_user.yml
+  - import_tasks: install_with_apt.yml
 
-   tasks:
-   - import_tasks: check_prerequisites.yml
-#   - import_tasks: run_shell_cmd_lsb_release.yml
-#   - import_tasks: generate_password.yml
-#   - import_tasks: add_user.yml
-#    - import_tasks: install_with_apt.yml
-
+## none of above are working. just place holders for now
 
 
 --------------------------------------------------------------------------------
@@ -78,6 +76,7 @@ now all the nodes should show ready
 we will see a new network interface (maybe called tun10@NONE) which will be on the 192.168.X.X subnet if we had configured our kubadm init with that network
 
 --------------------------------------------------------------------------------
+# https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -1,0 +1,15 @@
+
+- name: copy from local host to remote hosts (here example tomcat service file)
+  copy:
+    src: ../files/tomcat.service
+    dest: /etc/systemd/system/
+    mode: 0755
+
+# Copying the tomcat template file to the destination node
+- name: Copy tomcat service file
+  template:
+    src: templates/tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+  when: ansible_service_mgr == "systems"
+
+

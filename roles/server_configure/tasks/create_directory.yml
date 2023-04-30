@@ -1,0 +1,11 @@
+---
+tasks:
+
+- name: Create a directory (eg tomcat here)
+  file:
+    path: /opt/tomcat10
+    state: directory
+    owner: tomcat
+    group: tomcat
+    mode: 755
+    recurse: yes

@@ -11,6 +11,13 @@
     - import_tasks: run_shell_cmd_lsb_release.yml
 #    - import_tasks: generate_password.yml
 #    - import_tasks: add_user.yml
+
+     - name: Include the example role and run its tasks (at this point in the sequence of tasks)
+       #https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_role_module.html
+       # also read about import_role
+       include_role:
+         name: example
+
     - import_tasks: install_with_apt.yml
 # lot of things in docker.yml to copy over here in server configure
 

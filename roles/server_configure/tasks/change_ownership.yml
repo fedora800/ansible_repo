@@ -1,0 +1,8 @@
+    - name: Change ownership of tomcat directory
+      file:
+        path: /opt/tomcat10
+        owner: tomcat
+        group: tomcat
+        mode: "u+rwx,g+rx,o=rx"
+        recurse: yes
+        state: directory

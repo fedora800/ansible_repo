@@ -1,0 +1,20 @@
+
+- name: systemd daemon reload
+  systemd:
+    daemon_reload: true
+#    name: tomcat
+
+- name: start daemon using systemd
+  systemd:
+    state: started
+    name: tomcat
+    #daemon_reload: true
+
+# Starting and Enabling the tomcat service on the destination node (not using systemd module but service)
+- name: Start and enable tomcat
+  service:
+    daemon_reload: yes
+    name: tomcat
+    state: started
+    enabled: yes
+  when: ansible_service_mgr == "systemd"

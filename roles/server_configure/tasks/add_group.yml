@@ -4,7 +4,7 @@
 # i have just taken this from another place
 # need to make it take a pre-defined variable of group name
 # creates or ensures that the group user XXXX  exists
-- name : create group user XXXX
+- name : create group user tomcat
   group:
-    name: XXXX
+    name: tomcat
     state: present
