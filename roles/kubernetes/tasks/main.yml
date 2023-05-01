@@ -1,83 +1,53 @@
 ---
 # tasks file for kubernetes
 
-tasks:
-  - import_tasks: check_prerequisites.yml
-  - import_tasks: run_shell_cmd_lsb_release.yml
-  - import_tasks: generate_password.yml
-  - import_tasks: add_user.yml
-  - import_tasks: install_with_apt.yml
+- hosts: k8_nodes_private_ips
+#- hosts: all
+  become: true
 
-## none of above are working. just place holders for now
+  tasks:
+#    - import_tasks: check_prerequisites.yml
+    when: "'k8_nodes_private_ips' in group_names"
+  - import_tasks: phase_1_steps_on_all_k8_nodes.yml
+    when: "'k8_nodes_private_ips' in group_names"
+#  - import_tasks: phase_2_steps_on_k8_control_pane_nodes.yml
+    when: "'k8_nodes_control' in group_names"
+#  - import_tasks: generate_password.yml
+#  - import_tasks: add_user.yml
+#  - import_tasks: install_with_apt.yml
+#
+### none of above are working. just place holders for now
+#
+#
+#phase 3 -  steps to do on *ONLY* on worker
+#
+#kubeadm join
+#
+#verify by looking into output and it will say node has joined the cluster
+#--------------------------------------------------------------------------------
+#phase 4 -  verify cluster on *ONLY* on master
+#
+#run some commands like
+#kubectl get nodes  (should show NotReady for now, as CNI not yet setup)
+#
+#--------------------------------------------------------------------------------
+#phase 5 - install calico networking compoment (CNI) on *ONLY* on master
+#
+#lets use calico and do the kubectl apply of calico file
+#
+#then check by doing kubectl get pods -o wide
+#
+#now all the nodes should show ready
+#
+#we will see a new network interface (maybe called tun10@NONE) which will be on the 192.168.X.X subnet if we had configured our kubadm init with that network
+#
+#--------------------------------------------------------------------------------
+## https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 
---------------------------------------------------------------------------------
-prerequisites
-
---------------------------------------------------------------------------------
-phase 1 -  steps to do on *BOTH* master and worker nodes
-
-run apt update
-turn off swap and comment out /etc/fstab if there is any swap
-e.g. - /dev/hda6   swap     swap   defaults        0	0
-    or  free command shows ->
-Swap:          2047           5        2042
-$ grep -i --color swap /proc/meminfo
-SwapCached:        39196 kB
-SwapTotal:       8388604 kB
-SwapFree:        7995420 kB
-https://www.cyberciti.biz/faq/linux-add-a-swap-file-howto/
-
-add the host/ip records to all /etc/hosts  and make sure can ping each other
-
-curl downloads the gpg hash and adds to our apt-key config (so that our apt pkg mgr can do a hash check/authenticating integrity  with the remote server holding the package)
-then add the remote location of the kubernetes package to download from into our apt source file kubernets.list or k8.list
-
-then apt-get update    to refresh the local apt cache with above repo info
- 
-install kubelet, kubeadm and kubectl
-
-do the apt-mark hold for the version holding
-
-install docker (multiple steps but generically simple enough)
 
 
---------------------------------------------------------------------------------
-phase 2 -  steps to do on *ONLY* on master
-
-configuring cluster using kubeadm
-
-kubeadm init
-do the kube config 3 steps
-
-save the kubeadm join command info (will need to run it on the worker nodes)
-
---------------------------------------------------------------------------------
-phase 3 -  steps to do on *ONLY* on worker
-
-kubeadm join
-
-verify by looking into output and it will say node has joined the cluster
---------------------------------------------------------------------------------
-phase 4 -  verify cluster on *ONLY* on master
-
-run some commands like
-kubectl get nodes  (should show NotReady for now, as CNI not yet setup)
-
---------------------------------------------------------------------------------
-phase 5 - install calico networking compoment (CNI) on *ONLY* on master
-
-lets use calico and do the kubectl apply of calico file
-
-then check by doing kubectl get pods -o wide
-
-now all the nodes should show ready
-
-we will see a new network interface (maybe called tun10@NONE) which will be on the 192.168.X.X subnet if we had configured our kubadm init with that network
-
---------------------------------------------------------------------------------
-# https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

@@ -1,9 +1,3 @@
 ---
 # vars file for server_configure
 
- users_to_add:
-   username: cavani
-   username: rashford
-   username: fernandes
-   username: pogba
-

@@ -1,8 +1,25 @@
 ---
 
-- hosts: all
+#--------------------------------------------------------------------------------
+#prerequisites -  steps to do on *BOTH* master and worker nodes
+#
+#run apt update
+#
+#turn off swap and comment out /etc/fstab if there is any swap
+#e.g. - /dev/hda6   swap     swap   defaults        0	0
+#    or  free command shows ->
+#Swap:          2047           5        2042
+#$ grep -i --color swap /proc/meminfo
+#SwapCached:        39196 kB
+#SwapTotal:       8388604 kB
+#SwapFree:        7995420 kB
+#https://www.cyberciti.biz/faq/linux-add-a-swap-file-howto/
+#
+#add the host/ip records to all /etc/hosts  and make sure can ping each other
+#
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
-  tasks:
 # - name : check if new nodes are accessible	NOT-WORKING
 #   register: reg_ping
 #   debug:
@@ -42,14 +59,24 @@
 #     when: ansible_memory_mb.real.total < 4096
 
 
-   - name: check memory ---testing--
-     debug: 
-       var=ansible_memory_mb
-     debug: 
-       msg: "total RAM is {{ ansible_memory_mb.real.total }}"
-   
-   - name: do the fail
-     fail: 
-       msg: "not enough RAM"
-     when: ansible_memory_mb.real.total < 4096
+# below 2 associated tasks work, but i think i commented because it does the fail and not proceed to the next tasks
+# - name: check memory ---testing--
+#   debug: 
+#     var=ansible_memory_mb
+#   debug: 
+#     msg: "total RAM is {{ ansible_memory_mb.real.total }}"
+# 
+# - name: do the fail
+#   fail: 
+#     msg: "not enough RAM (should be atleast 2 GB)"
+#   when: ansible_memory_mb.real.total < 2048
+
+# appends a block of hostname and ip records to bottom of /etc/hosts file
+# giving task name will make it seem in the output as if 2 seperate tasks are being done
+# it still does but not that explicit
+# - name: append host and ip records to /etc/hosts file (CALLS from another ROLE)
+- ansible.builtin.include_role:
+    name: server_configure
+    # use only this task, name should match the yml file
+    tasks_from: append_records_to_etc_hosts_file
 

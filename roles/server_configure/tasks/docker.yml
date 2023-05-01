@@ -32,7 +32,7 @@
         state: present
       when: ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('20.04', '>=')
 
-
+# apt-key deprecated - https://www.linuxuprising.com/2021/01/apt-key-is-deprecated-how-to-add.html
     - name: Add Docker' official GPG key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg

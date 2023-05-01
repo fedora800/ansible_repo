@@ -1,0 +1,82 @@
+---
+
+# On https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# section called "Installing kubeadm, kubelet and kubectl"
+#phase 1 -  steps to do on *BOTH* master and worker nodes
+
+#curl downloads the gpg hash and adds to our apt-key config (so that our apt pkg mgr can do a hash check/authenticating integrity  with the remote server holding the package)
+#then add the remote location of the kubernetes package to download from into our apt source file kubernets.list or k8.list
+#
+#then apt-get update    to refresh the local apt cache with above repo info
+# 
+#install kubelet, kubeadm and kubectl
+#
+#do the apt-mark hold for the version holding
+#
+#install docker (multiple steps but generically simple enough)
+#
+# --------------------------------------------------------------------------------
+
+# run apt update and upgrade, is there in another role
+# - name: append host and ip records to /etc/hosts file (CALLS from another ROLE)
+- ansible.builtin.include_role:
+    name: server_configure
+    # use only this task, name should match the yml file
+    tasks_from: apt_update_and_upgrade
+
+# install packages needed to use the Kubernetes apt repository
+# sudo apt-get install -y apt-transport-https ca-certificates curl
+- name: apt install https and curl
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+  become: true
+
+- name: Download the Google Cloud public signing key
+# sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+# above command will download the remote gpg file into the file and path we gave and create with root:root and 644 perms.
+  shell: curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add the Kubernetes apt repository
+#echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+  shell: echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# Update apt package index, install kubelet, kubeadm and kubectl, and pin their version:
+
+- ansible.builtin.include_role:
+    name: server_configure
+    # use only this task, name should match the yml file
+    tasks_from: apt_update_and_upgrade
+
+# i dont want to install in loop, prefer to be logged as seperate tasks
+# NOTE - all 3 will throw errors continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
+- name: install kubelet
+  apt:
+    name: kubelet
+    state: present
+    update_cache: yes
+  become: true
+
+- name: install kubeadm
+  apt:
+    name: kubeadm
+    state: present
+    update_cache: yes
+  become: true
+
+- name: install kubectl
+  apt:
+    name: kubectl
+    state: present
+    update_cache: yes
+  become: true
+
+- name: pin the versions used
+  shell: sudo apt-mark hold kubelet kubeadm kubectl
+
+# to install docker, i have a completely different role
+# and i prefer to install docker first before kubernetes install
+
+

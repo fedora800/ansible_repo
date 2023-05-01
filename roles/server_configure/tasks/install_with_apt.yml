@@ -118,3 +118,7 @@
 #
 
 # check https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04  for apt_key and apt_repository tasks and others
+# https://github.com/netson/ansible-gpg-key
+# https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt_key-module-tutorial-examples/
+
+
