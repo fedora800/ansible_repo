@@ -1,4 +1,8 @@
 ---
+# works
+# referred https://github.com/codylane/ansible-playbook-change-hostname
+# https://www.middlewareinventory.com/blog/ansible-inventory_hostname-ansible_hostname-variables/
+
 - hosts: all
   become: yes
 

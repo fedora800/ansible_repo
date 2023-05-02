@@ -1,4 +1,5 @@
 ---
+# some other untested article for ref - https://www.middlewareinventory.com/blog/ansible-update-etc-hosts-file-across-all-hosts/
 
 # appends a block of hostname and ip records to bottom of /etc/hosts file
 - name: append host and ip records to /etc/hosts file
@@ -9,8 +10,8 @@
     backup: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
-      172.31.20.249   acg-k8-controlp1
-      172.31.18.228   acg-k8-controlp2
-      172.31.17.206   acg-k8-worker1
-      172.31.27.142   acg-k8-worker2
-      172.31.31.203   acg-k8-worker3
+      172.31.100.23       acg-k8-controlp1
+      172.31.111.98       acg-k8-controlp2
+      172.31.96.38        acg-k8-worker1
+      172.31.104.153      acg-k8-worker2
+      172.31.107.115      acg-k8-worker3
