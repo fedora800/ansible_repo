@@ -8,8 +8,26 @@
 #
 #configuring cluster using kubeadm
 #
-#kubeadm init
+#kubeadm init    (and do with --v=5)
+# this has given me diff types of errors all the time during pre-flight checks, like such - 
+#           sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23                 
+#           I0503 09:21:12.916660    5948 version.go:256] remote version is much newer: v1.27.1; falling back to: stable-1.26                                                                                                                
+#           [init] Using Kubernetes version: v1.26.4                                                                        
+#           [preflight] Running pre-flight checks                                                                           
+#           error execution phase preflight: [preflight] Some fatal errors occurred:                                        
+#                   [ERROR CRI]: container runtime is not running: output: time="2023-05-03T09:21:13Z" level=fatal msg="validate service connection: CRI v1 runtime API is not implemented for endpoint \"unix:///var/run/containerd/containe
+#           rd.sock\": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService"                    
+#           , error: exit status 1                                                                                                                                                                                                           
+#           [preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...` To see the stack trace of this error execute with --v=5 or higher        
+# i followed 1 article which told to mv /etc/containerd/config.toml to config.toml.bak and restart containerd and then do kubeadm and that seems to have worked for me
+# and that too after fiddling around with and then using the older versions of kubectl and kubeadm
+
+
+
 #do the kube config 3 steps
+#   mkdir -p $HOME/.kube
+#   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#   sudo chown $(id -u):$(id -g) $HOME/.kube/config
 #
 #save the kubeadm join command info (will need to run it on the worker nodes)
 #
@@ -18,89 +36,84 @@
 
 # output of manual run at command line below - 
 
-# running with --v=5 is very useful
+# running with --v=5 is very useful (but i forgot to do it)
 
-sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.20.249
-[sudo] password for cloud_user:
-[init] Using Kubernetes version: v1.27.1
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23
+I0503 09:33:00.050679    6580 version.go:256] remote version is much newer: v1.27.1; falling back to: stable-1.26
+[init] Using Kubernetes version: v1.26.4
 [preflight] Running pre-flight checks
-error execution phase preflight: [preflight] Some fatal errors occurred:
-        [ERROR CRI]: container runtime is not running: output: time="2023-04-30T17:16:46Z" level=fatal msg="validate service connection: CRI v1 runtime API is not implemented for endpoint \"
-unix:///var/run/containerd/containerd.sock\": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService"                                                               , error: exit status 1
-[preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...`
-To see the stack trace of this error execute with --v=5 or higher
-cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/kubernetes/tasks
-$ sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.20.249 --v=5
-I0430 17:17:15.441287    1550 initconfiguration.go:117] detected and using CRI socket: unix:///var/run/containerd/containerd.sock
-I0430 17:17:15.441373    1550 kubelet.go:196] the value of KubeletConfiguration.cgroupDriver is empty; setting it to "systemd"
-I0430 17:17:15.453242    1550 version.go:187] fetching Kubernetes version from URL: https://dl.k8s.io/release/stable-1.txt
-[init] Using Kubernetes version: v1.27.1
-[preflight] Running pre-flight checks
-I0430 17:17:15.754703    1550 checks.go:563] validating Kubernetes and kubeadm version
-I0430 17:17:15.754832    1550 checks.go:168] validating if the firewall is enabled and active
-I0430 17:17:15.766072    1550 checks.go:203] validating availability of port 6443
-I0430 17:17:15.766254    1550 checks.go:203] validating availability of port 10259
-I0430 17:17:15.766307    1550 checks.go:203] validating availability of port 10257
-I0430 17:17:15.766353    1550 checks.go:280] validating the existence of file /etc/kubernetes/manifests/kube-apiserver.yaml
-I0430 17:17:15.766381    1550 checks.go:280] validating the existence of file /etc/kubernetes/manifests/kube-controller-manager.yaml
-I0430 17:17:15.766402    1550 checks.go:280] validating the existence of file /etc/kubernetes/manifests/kube-scheduler.yaml
-I0430 17:17:15.766422    1550 checks.go:280] validating the existence of file /etc/kubernetes/manifests/etcd.yaml
-I0430 17:17:15.766443    1550 checks.go:430] validating if the connectivity type is via proxy or direct
-I0430 17:17:15.766473    1550 checks.go:469] validating http connectivity to first IP address in the CIDR
-I0430 17:17:15.766797    1550 checks.go:469] validating http connectivity to first IP address in the CIDR
-I0430 17:17:15.766829    1550 checks.go:104] validating the container runtime
-I0430 17:17:15.805613    1550 checks.go:639] validating whether swap is enabled or not
-I0430 17:17:15.805761    1550 checks.go:370] validating the presence of executable crictl
-I0430 17:17:15.806033    1550 checks.go:370] validating the presence of executable conntrack
-I0430 17:17:15.806104    1550 checks.go:370] validating the presence of executable ip
-I0430 17:17:15.806134    1550 checks.go:370] validating the presence of executable iptables
-I0430 17:17:15.806174    1550 checks.go:370] validating the presence of executable mount
-I0430 17:17:15.806212    1550 checks.go:370] validating the presence of executable nsenter
-I0430 17:17:15.806250    1550 checks.go:370] validating the presence of executable ebtables
-I0430 17:17:15.806286    1550 checks.go:370] validating the presence of executable ethtool
-I0430 17:17:15.806320    1550 checks.go:370] validating the presence of executable socat
-I0430 17:17:15.806356    1550 checks.go:370] validating the presence of executable tc
-I0430 17:17:15.806388    1550 checks.go:370] validating the presence of executable touch
-I0430 17:17:15.806423    1550 checks.go:516] running all checks
-I0430 17:17:15.830410    1550 checks.go:401] checking whether the given node name is valid and reachable using net.LookupHost
-I0430 17:17:15.830454    1550 checks.go:605] validating kubelet version
-I0430 17:17:15.923668    1550 checks.go:130] validating if the "kubelet" service is enabled and active
-I0430 17:17:15.937197    1550 checks.go:203] validating availability of port 10250
-I0430 17:17:15.937291    1550 checks.go:329] validating the contents of file /proc/sys/net/bridge/bridge-nf-call-iptables
-I0430 17:17:15.937355    1550 checks.go:329] validating the contents of file /proc/sys/net/ipv4/ip_forward
-I0430 17:17:15.937399    1550 checks.go:203] validating availability of port 2379
-I0430 17:17:15.937452    1550 checks.go:203] validating availability of port 2380
-I0430 17:17:15.937504    1550 checks.go:243] validating the existence and emptiness of directory /var/lib/etcd
-[preflight] Some fatal errors occurred:
-        [ERROR CRI]: container runtime is not running: output: time="2023-04-30T17:17:15Z" level=fatal msg="validate service connection: CRI v1 runtime API is not implemented for endpoint \"unix:///var/run/containerd/containerd.sock\": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService"
-, error: exit status 1
-[preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...`
-error execution phase preflight
-k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/workflow.(*Runner).Run.func1
-        cmd/kubeadm/app/cmd/phases/workflow/runner.go:260
-k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/workflow.(*Runner).visitAll
-        cmd/kubeadm/app/cmd/phases/workflow/runner.go:446
-k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/workflow.(*Runner).Run
-        cmd/kubeadm/app/cmd/phases/workflow/runner.go:232
-k8s.io/kubernetes/cmd/kubeadm/app/cmd.newCmdInit.func1
-        cmd/kubeadm/app/cmd/init.go:111
-github.com/spf13/cobra.(*Command).execute
-        vendor/github.com/spf13/cobra/command.go:916
-github.com/spf13/cobra.(*Command).ExecuteC
-        vendor/github.com/spf13/cobra/command.go:1040
-github.com/spf13/cobra.(*Command).Execute
-        vendor/github.com/spf13/cobra/command.go:968
-k8s.io/kubernetes/cmd/kubeadm/app.Run
-        cmd/kubeadm/app/kubeadm.go:50
-main.main
-        cmd/kubeadm/kubeadm.go:25
-runtime.main
-        /usr/local/go/src/runtime/proc.go:250
-runtime.goexit
-        /usr/local/go/src/runtime/asm_amd64.s:1598
-cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/kubernetes/tasks
-$
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [acg-k8-controlp1 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 172.31.100.23]
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "front-proxy-ca" certificate and key                                                         
+[certs] Generating "front-proxy-client" certificate and key         
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/server" certificate and key                                                            
+[certs] etcd/server serving cert is signed for DNS names [acg-k8-controlp1 localhost] and IPs [172.31.100.23 127.0.0.1 ::1]
+[certs] Generating "etcd/peer" certificate and key                                                              
+[certs] etcd/peer serving cert is signed for DNS names [acg-k8-controlp1 localhost] and IPs [172.31.100.23 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "sa" key and public key
+[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+[kubeconfig] Writing "admin.conf" kubeconfig file
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Starting the kubelet
+[control-plane] Using manifest folder "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
+[apiclient] All control plane components are healthy after 21.525388 seconds
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node acg-k8-controlp1 as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node acg-k8-controlp1 as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+[bootstrap-token] Using token: kqep4m.vot4r395hfer1bbt
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
 
---
-i am seeing the CRI error ..
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.100.23:6443 --token kqep4m.vot4r395hfer1bbt \
+        --discovery-token-ca-cert-hash sha256:df0923e123483ce29ba9255d8ef4e0a614873077da41055fa80d06c424f89fb7 
+
+--------------------------------------------------------------------------------
+
+
+
 

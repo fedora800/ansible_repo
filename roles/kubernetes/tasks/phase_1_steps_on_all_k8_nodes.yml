@@ -10,7 +10,11 @@
 #then apt-get update    to refresh the local apt cache with above repo info
 # 
 #install kubelet, kubeadm and kubectl
-#
+#  here i am on ubuntu 22.04, so i google searched and due to kubeadm errors saw that some had gone with older versions, so i did the below versions 
+#  kubectl v1.27.1
+#  kubeadm v1.26.1
+#  kubelet v1.26.1
+
 #do the apt-mark hold for the version holding
 #
 #install docker (multiple steps but generically simple enough)

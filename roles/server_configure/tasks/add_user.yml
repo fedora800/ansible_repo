@@ -60,3 +60,15 @@ to test
   user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
   become: True
   become_method: sudo
+
+# look at this url how to call from task and role etc - https://mahira-technology.medium.com/how-to-copy-ssh-key-to-remote-host-using-ansible-9b0fd00f3786
+# also check https://github.com/sadsfae/ansible-sshkeys
+# also https://poweradm.com/create-user-copy-ssh-key-ansible/
+- name: Copy SSh Key | copying shh key to remote host
+  authorized_key:
+     user: "<your_user>"
+     state: present
+     key: "{{ lookup('file', item) }}"
+  with_fileglob:
+  - id_ed25519.pub
+  become: true
