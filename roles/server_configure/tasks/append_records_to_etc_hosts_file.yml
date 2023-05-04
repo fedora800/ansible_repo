@@ -1,17 +1,24 @@
 ---
 # some other untested article for ref - https://www.middlewareinventory.com/blog/ansible-update-etc-hosts-file-across-all-hosts/
+# i had to make it an independant playbook for now by add hosts, become, tasks etc so that i am able to run this independantly first thing when configuring the hosts
+# $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --ask-become-pass append_records_to_etc_hosts_file.yml 
 
-# appends a block of hostname and ip records to bottom of /etc/hosts file
-- name: append host and ip records to /etc/hosts file
-  blockinfile:
-    path: /etc/hosts
-    state: present
-    insertafter: EOF
-    backup: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK"
-    block: |
-      172.31.100.23       acg-k8-controlp1
-      172.31.111.98       acg-k8-controlp2
-      172.31.96.38        acg-k8-worker1
-      172.31.104.153      acg-k8-worker2
-      172.31.107.115      acg-k8-worker3
+
+- hosts: all
+  become: true
+
+  tasks:
+  # appends a block of hostname and ip records to bottom of /etc/hosts file
+  - name: append host and ip records to /etc/hosts file
+    blockinfile:
+      path: /etc/hosts
+      state: present
+      insertafter: EOF
+      backup: yes
+      marker: "# {mark} ANSIBLE MANAGED BLOCK"
+      block: |
+        172.31.99.7       acg-k8-controlp1
+        172.31.100.3      acg-k8-controlp2
+        172.31.110.40     acg-k8-worker1
+        172.31.97.82      acg-k8-worker2
+        172.31.111.207    acg-k8-worker3

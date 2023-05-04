@@ -10,7 +10,7 @@
 
 
 - name: Download Tomcat using get_url
-  become: yes
+  become: true
   get_url:
     url: https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.8/bin/apache-tomcat-10.1.8.tar.gz 
     dest: /tmp
