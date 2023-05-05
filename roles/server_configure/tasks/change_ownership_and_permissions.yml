@@ -6,3 +6,11 @@
         mode: "u+rwx,g+rx,o=rx"
         recurse: yes
         state: directory
+
+    - name: Change file ownership, group and permissions
+      ansible.builtin.file:
+        path: /etc/foo.conf
+        owner: foo
+        group: foo
+        mode: '0644'
+

@@ -8,8 +8,8 @@
         force: true
       register: add_repository_key
 
-
-- name: Download Tomcat using get_url
+# i suppose we can use this in place of curl command
+- name: Download Tomcat using get_url module
   become: true
   get_url:
     url: https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.8/bin/apache-tomcat-10.1.8.tar.gz 

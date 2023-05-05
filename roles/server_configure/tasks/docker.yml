@@ -1,10 +1,13 @@
 ---
 
+# https://docs.docker.com/engine/install/ubuntu/
+
 - hosts: all
   become: true
 
   tasks:
   
+    # they were called diff names, so docker website says make sure to uninstall them all
     - name: Un-install old docker package versions, if any
       apt:
         name: "{{ item }}"
@@ -26,41 +29,55 @@
          - ca-certificates
          - curl
 
+    # i have just split the gnupg from above into a new task to just try out the when clause
     - name: Ensure additional dependencies (gnupg) are installed 
       apt:
         name: gnupg
         state: present
       when: ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('20.04', '>=')
 
-# apt-key deprecated - https://www.linuxuprising.com/2021/01/apt-key-is-deprecated-how-to-add.html
-    - name: Add Docker' official GPG key
-      apt_key:
+
+    # Add Docker’s official GPG key:
+    # sudo install -m 0755 -d /etc/apt/keyrings
+    - name: Create the directory (if not there) to store the keyrings
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: "u+rwx,g+rx,o=rx"
+        #mode: ugo+rw
+        recurse: yes
+
+    # curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    # sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    # apt-key is deprecated, so need to do using other means
+    # need to know if the key we are downloading is of type ASCII-armored or a binary gpg key
+    # https://www.jeffgeerling.com/blog/2022/aptkey-deprecated-debianubuntu-how-fix-ansible
+    # https://stackoverflow.com/questions/71585303/how-can-i-manage-keyring-files-in-trusted-gpg-d-with-ansible-playbook-since-apt
+    # https://fabianlee.org/2023/04/17/ansible-adding-custom-apt-repository-with-signed-by-gpg-key/
+    # using a .asc file will avoid the need to do the extra gpg --dearmor step entirely
+    - name: Download docker gpg key file using get_url module into apt keyrings directory without using gpg armor 
+      become: true
+      get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+        dest: /etc/apt/keyrings/docker.asc
+        mode: 0755
 
-    - name: Add Docker apt key
-      ansible.builtin.get_url:
-        url: "https://download.docker.com/linux/ubuntu/gpg"
-        dest: /etc/apt/keyrings/docker.gpg
-        mode: '0644'
-        force: true
-      register: add_repository_key
-
-
-    - name: Add Docker Repository  **note i am hardcoding ubuntu jammy here for now **
+    # echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    #          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # first part evaluates to - deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
+    - name: Set up the requisite docker repository in apt
+      become: true
       apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu jammy stable
+        # this will change depending on architecture and versions etc
+        # ** i was not able to make the docker.asc work, i had to run the curl and armor to create the docker.gpg in proper binary gpg format, then this task worked **
+        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable"
         state: present
-
-#echo \
-#  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-#  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-#  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-#     - name: Verify that we have the key with the fingerprint
-#       apt_key:
-#         id: 0EBFCD88
-#         state: present
+        update_cache: yes
+        mode: 0755
+      tags:
+        - just-this-task
 
 ## now install docker engine
 
