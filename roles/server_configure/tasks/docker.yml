@@ -19,6 +19,8 @@
         - docker.io 
         - containerd 
         - runc
+      tags:
+        - just-this-task
   
     - name: Update the apt package index and install packages to allow apt to use a repository over HTTPS
       apt:
@@ -72,15 +74,14 @@
       apt_repository:
         # this will change depending on architecture and versions etc
         # ** i was not able to make the docker.asc work, i had to run the curl and armor to create the docker.gpg in proper binary gpg format, then this task worked **
-        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable"
+        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
         state: present
+        filename: docker        # looks like the .list extension gets appended
         update_cache: yes
         mode: 0755
-      tags:
-        - just-this-task
 
-## now install docker engine
-
+    # now install docker engine
+    # sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     - name: Update the apt package index and install docker packages
       apt:
         name: "{{ item }}"
@@ -92,6 +93,9 @@
         - containerd.io
         - docker-buildx-plugin
         - docker-compose-plugin
+
+
+
 # --------------------------------------------------------------------------------
 
   #       - apt-transport-https
