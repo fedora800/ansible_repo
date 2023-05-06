@@ -1,12 +1,12 @@
 
 [k8_nodes_control]
-acg-k8-controlp1       ansible_host=172.31.99.7
-acg-k8-controlp2       ansible_host=172.31.100.3
+acg-k8-controlp1       ansible_host=172.31.101.198
+acg-k8-controlp2       ansible_host=172.31.96.71
 
 [k8_nodes_worker]
-acg-k8-worker1         ansible_host=172.31.110.40
-acg-k8-worker2         ansible_host=172.31.97.82
-acg-k8-worker3         ansible_host=172.31.111.207
+acg-k8-worker1         ansible_host=172.31.107.40
+acg-k8-worker2         ansible_host=172.31.107.156
+acg-k8-worker3         ansible_host=172.31.105.152
 
 [k8_nodes_private_ips:children]
 k8_nodes_control
