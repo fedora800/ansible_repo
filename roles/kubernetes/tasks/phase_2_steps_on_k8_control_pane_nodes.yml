@@ -17,10 +17,17 @@
 #           error execution phase preflight: [preflight] Some fatal errors occurred:                                        
 #                   [ERROR CRI]: container runtime is not running: output: time="2023-05-03T09:21:13Z" level=fatal msg="validate service connection: CRI v1 runtime API is not implemented for endpoint \"unix:///var/run/containerd/containe
 #           rd.sock\": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService"                    
-#           , error: exit status 1                                                                                                                                                                                                           
-#           [preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...` To see the stack trace of this error execute with --v=5 or higher        
+#           , error: exit status 1
 # i followed 1 article which told to mv /etc/containerd/config.toml to config.toml.bak and restart containerd and then do kubeadm and that seems to have worked for me
-# and that too after fiddling around with and then using the older versions of kubectl and kubeadm
+
+# The connection to the server 192.168.1.2:6443 was refused - did you specify the right host or port?
+# above was one of the worst errors that gave me a lot of trouble, i think i spent nearly 20 full hours tblshootting and re-installing again and again
+# below links helped me with fixing it
+# https://discuss.kubernetes.io/t/the-connection-to-the-server-192-168-1-2-6443-was-refused-did-you-specify-the-right-host-or-port/22260
+# https://www.linuxtechi.com/install-kubernetes-cluster-on-debian/
+# https://stackoverflow.com/questions/70849989/kube-apiserver-docker-shutting-down-got-signal-terminated/74695838#74695838
+# https://www.vnoob.com/2022/12/kubectl-6443-connection-refused/
+# i backed up and went to /etc/containerd/config.toml around line 125 (only 1 reference for SystemdCgroup) and changed SystemdCgroup = true and bounced containerd
 
 
 
@@ -113,6 +120,22 @@ kubeadm join 172.31.100.23:6443 --token kqep4m.vot4r395hfer1bbt \
         --discovery-token-ca-cert-hash sha256:df0923e123483ce29ba9255d8ef4e0a614873077da41055fa80d06c424f89fb7 
 
 --------------------------------------------------------------------------------
+
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --kubernetes-version 1.26.0
+
+I0507 15:50:06.897961    2023 kubelet.go:196] the value of KubeletConfiguration.cgroupDriver is empty; setting it to "systemd"
+[init] Using Kubernetes version: v1.26.0
+
+
+
+
+
+
+
+
+
+
 
 
 

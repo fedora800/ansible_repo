@@ -98,6 +98,7 @@ sudo systemctl restart containerd
     # use only this task, name should match the yml file
     tasks_from: apt_update_and_upgrade
 
+# if i want to install specific version just in case, sudo apt-get install -y kubelet=1.26.0-00 kubeadm=1.26.0-00 kubectl=1.26.0-00
 # i dont want to install in loop, prefer to be logged as seperate tasks
 # NOTE - all 3 will throw errors continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
 - name: install kubelet

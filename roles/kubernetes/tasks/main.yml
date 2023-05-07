@@ -36,6 +36,7 @@
 #phase 5 - install calico networking compoment (CNI) on *ONLY* on master
 #
 #lets use calico and do the kubectl apply of calico file
+# https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises
 #
 #then check by doing kubectl get pods -o wide
 #
