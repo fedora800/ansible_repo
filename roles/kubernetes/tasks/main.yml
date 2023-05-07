@@ -1,6 +1,12 @@
 ---
 # tasks file for kubernetes
 
+# i need to understand properly if docker is ever needed for kubernetes, i can make it use containerd only i think - 
+# $ kubectl get nodes -o wide
+# NAME               STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+# acg-k8-controlp1   Ready    control-plane   36m   v1.26.0   172.31.104.228   <none>        Ubuntu 22.04.2 LTS   5.19.0-1024-aws   containerd://1.6.12
+
+
 - hosts: k8_nodes_private_ips
 #- hosts: all
   become: true
@@ -27,7 +33,7 @@
 #
 #verify by looking into output and it will say node has joined the cluster
 #--------------------------------------------------------------------------------
-#phase 4 -  verify cluster on *ONLY* on master
+#phase 4 -  verify cluster on *ONLY* on master   (this is in phase_2_steps.. file)
 #
 #run some commands like
 #kubectl get nodes  (should show NotReady for now, as CNI not yet setup)
@@ -37,6 +43,38 @@
 #
 #lets use calico and do the kubectl apply of calico file
 # https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises
+# $ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/tigera-operator.yaml
+# $ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/custom-resources.yaml
+# $ watch kubectl get pods -n calico-system
+# Wait until each pod has the STATUS of Running. we will see like below - 
+NAME                                       READY   STATUS    RESTARTS      AGE
+calico-kube-controllers-6bb86c78b4-dqvb5   1/1     Running   0             26m
+calico-node-xdbjw                          1/1     Running   1 (12m ago)   26m
+calico-typha-ff45cf5cb-g46wv               1/1     Running   2 (11m ago)   26m
+csi-node-driver-h77d4                      2/2     Running   0             26m
+
+$ kubectl get pods -A
+NAMESPACE          NAME                                       READY   STATUS    RESTARTS       AGE
+calico-apiserver   calico-apiserver-7d895bc6bd-5qtxj          1/1     Running   0              11m
+calico-apiserver   calico-apiserver-7d895bc6bd-rtjz6          1/1     Running   0              11m
+calico-system      calico-kube-controllers-6bb86c78b4-dqvb5   1/1     Running   0              27m
+calico-system      calico-node-xdbjw                          1/1     Running   1 (13m ago)    27m
+calico-system      calico-typha-ff45cf5cb-g46wv               1/1     Running   2 (12m ago)    27m
+calico-system      csi-node-driver-h77d4                      2/2     Running   0              27m
+kube-system        coredns-787d4945fb-kmbhm                   1/1     Running   0              30m
+kube-system        coredns-787d4945fb-s4l9b                   1/1     Running   0              30m
+kube-system        etcd-acg-k8-controlp1                      1/1     Running   24 (13m ago)   31m
+kube-system        kube-apiserver-acg-k8-controlp1            1/1     Running   24 (13m ago)   31m
+kube-system        kube-controller-manager-acg-k8-controlp1   1/1     Running   26 (13m ago)   31m
+kube-system        kube-proxy-kwzrq                           1/1     Running   1 (13m ago)    30m
+kube-system        kube-scheduler-acg-k8-controlp1            1/1     Running   25 (13m ago)   31m
+tigera-operator    tigera-operator-5d6845b496-dtnvd           1/1     Running   2 (12m ago)    27m
+
+# not sure below is needed ? 
+4. Remove the taints on the control plane so that you can schedule pods on it.
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
 #
 #then check by doing kubectl get pods -o wide
 #
@@ -49,6 +87,65 @@
 #--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
+
+
+
+
+https://stackoverflow.com/questions/43379415/how-can-i-list-the-taints-on-kubernetes-nodes
+
+
+kubectl get nodes -o json | jq '.items[].spec'
+
+which will give the complete spec with node name, or:
+
+kubectl get nodes -o json | jq '.items[].spec.taints'
+
+will produce the list of the taints per each node
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl get nodes -o json | jq '.items[].spec'
+{
+  "podCIDR": "192.168.0.0/24",
+  "podCIDRs": [
+    "192.168.0.0/24"
+  ],
+  "taints": [
+    {
+      "effect": "NoSchedule",
+      "key": "node-role.kubernetes.io/control-plane"
+    }
+  ]
+}
+cloud_user@acg-k8-controlp1:~
+$
+cloud_user@acg-k8-controlp1:~
+$ kubectl get nodes -o json | jq '.items[].spec.taints'
+[
+  {
+    "effect": "NoSchedule",
+    "key": "node-role.kubernetes.io/control-plane"
+  }
+]
+cloud_user@acg-k8-controlp1:~
+$
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+kubectl taint nodes --all node-role.kubernetes.io/master-
+node/acg-k8-controlp1 untainted
+error: taint "node-role.kubernetes.io/master" not found
+cloud_user@acg-k8-controlp1:~
+$
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl get nodes -o wide
+NAME               STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+acg-k8-controlp1   Ready    control-plane   45m   v1.26.0   172.31.104.228   <none>        Ubuntu 22.04.2 LTS   5.19.0-1024-aws   containerd://1.6.12
+cloud_user@acg-k8-controlp1:~
+$
+
+
+
 #--------------------------------------------------------------------------------
 
 
