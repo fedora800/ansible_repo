@@ -75,6 +75,30 @@ tigera-operator    tigera-operator-5d6845b496-dtnvd           1/1     Running   
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
+$ ip a | egrep "group|inet"
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host
+2: ens5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    inet 172.31.104.228/20 metric 100 brd 172.31.111.255 scope global dynamic ens5
+    inet6 2a05:d01c:2c7:d801:ab88:a159:21da:4037/128 scope global dynamic noprefixroute
+    inet6 fe80::8f8:bcff:feb2:a6ae/64 scope link
+3: cali493b3880927@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+4: caliefc135607e3@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+5: cali1391198ee61@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+6: cali8ff4067ca74@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+7: cali3a69c20bc8f@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+8: cali18cabf282fc@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UP group default
+    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+11: vxlan.calico: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8951 qdisc noqueue state UNKNOWN group default
+    inet 192.168.189.0/32 scope global vxlan.calico
+    inet6 fe80::6493:67ff:fea7:2b4f/64 scope link
+
 #
 #then check by doing kubectl get pods -o wide
 #
