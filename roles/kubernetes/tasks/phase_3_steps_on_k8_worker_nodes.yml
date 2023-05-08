@@ -73,3 +73,12 @@ Protocol	Direction	Port Range	Purpose	Used By
 TCP	Inbound	10250	Kubelet API	Self, Control plane
 TCP	Inbound	30000-32767	NodePort Services†	All
 
+remember, i need to also open firewall on worker nodes, per kubernetes doc
+
+only then did below things work - 
+kubectl port-forward firstpod 4000:80 --address='0.0.0.0'
+Forwarding from 0.0.0.0:4000 -> 80
+
+
+
+
