@@ -1,0 +1,14 @@
+---
+#
+# steps to do on *ONLY* on worker  
+# to be done on EACH of the worker nodes
+#
+#kubeadm join            ( make sure to run with --v=5)
+#    i think i need to run as sudo
+#    it threws errors and took around 6 mins to complete
+#
+#verify by looking into output and it will say node has joined the cluster
+
+#--------------------------------------------------------------------------------
+
+
