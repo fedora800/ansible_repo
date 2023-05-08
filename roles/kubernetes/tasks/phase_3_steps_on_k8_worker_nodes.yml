@@ -4,11 +4,72 @@
 # to be done on EACH of the worker nodes
 #
 #kubeadm join            ( make sure to run with --v=5)
-#    i think i need to run as sudo
+#    i think i need to RUN AS sudo
 #    it threws errors and took around 6 mins to complete
 #
 #verify by looking into output and it will say node has joined the cluster
 
 #--------------------------------------------------------------------------------
+#if i forget the join token and hash - get it using this https://ystatit.medium.com/regenerate-kubernetes-join-command-to-join-work-node-7eeb5d1f5787
 
+# sudo kubeadm join 172.31.104.228:6443 --token 4mi8ia.3q0i8j1jk3katmb6 --discovery-token-ca-cert-hash sha256:99a07a5c154e2fe1bd99e4f2379b780371ef41e0d48a9950c87f540b02f53f27
+
+# got error - 
+# https://forum.linuxfoundation.org/discussion/862825/kubeadm-init-error-cri-v1-runtime-api-is-not-implemented
+#[preflight] Some fatal errors occurred:
+#        [ERROR CRI]: container runtime is not running: output: time="2023-05-08T09:24:24Z" level=fatal msg="validate service connection: CRI v1 runtime API is not implemented for endpoint \"unix:///var/run/containerd/containerd.sock\": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService"
+#, error: exit status 1
+#[preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...`
+
+# so did the same this as on master, recreated a default config.toml  (and made sure disabled_plugins = []) and also did the SystemCgroup thing to true (check my phase 2 notes) and bounced containerd and did again join
+
+then it was timing out connecting to the master on the 6443 api-server port ...
+
+I0508 09:29:02.522683    3718 token.go:217] [discovery] Failed to request cluster-info, will try again: Get "https://172.31.104.228:6443/api/v1/namespaces/kube-public/configmaps/cluster-info
+?timeout=10s": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+I0508 09:29:18.441098    3718 token.go:217] [discovery] Failed to request cluster-info, will try again: Get "https://172.31.104.228:6443/api/v1/namespaces/kube-public/configmaps/cluster-info
+?timeout=10s": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+I0508 09:29:34.860831    3718 token.go:217] [discovery] Failed to request cluster-info, will try again: Get "https://172.31.104.228:6443/api/v1/namespaces/kube-public/configmaps/cluster-info
+?timeout=10s": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+
+so i had to open up the firewall on the control plane 1 server and immediately it was able to find and proceed.
+i did the below 9 allows from oracle which worked, but need to read kubernetes docs and do what they say and document it
+this step might need to be in phase 1 actually ..
+
+
+
+# just enabled below firewall commands based of https://docs.oracle.com/en/operating-systems/olcne/1.1/start/ports.html
+# other docs dont show these, but going to try and then document later
+sudo ufw allow 2379/tcp comment "k8 etcd server client API"
+sudo ufw allow 2380/tcp comment "k8 etcd server client API"
+sudo ufw allow 6443/tcp comment "k8 API server"
+sudo ufw allow 8090/tcp comment "k8 Platform Agent"
+sudo ufw allow 8091/tcp comment "k8 Platform API Server"
+sudo ufw allow 10250/tcp comment "k8 kubelet API server"
+sudo ufw allow 10251/tcp comment "k8 kube-scheduler"
+sudo ufw allow 10252/tcp comment "k8 kube-controller-manager"
+sudo ufw allow 10255/tcp comment "k8 kubelet API server for read-only access with no authentication"
+
+after this, i got error on - 
+$ kubectl get nodes
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+
+ah, found this on kubernetes site - 
+https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+
+https://admantium.com/blog/kube11_k8s_with_kubeadm_tutorial/
+https://www.fosstechnix.com/how-to-install-kubernetes-cluster-on-ubuntu/
+
+below are from kubernetes doc - 
+control plane
+--------------
+sudo ufw allow 6443/tcp comment "k8 API server"
+sudo ufw allow 2379/tcp comment "k8 etcd server client API"
+sudo ufw allow 2380/tcp comment "k8 etcd server client API"
+sudo ufw allow 10250/tcp comment "k8 kubelet API server"
+worker node
+-----------
+Protocol	Direction	Port Range	Purpose	Used By
+TCP	Inbound	10250	Kubelet API	Self, Control plane
+TCP	Inbound	30000-32767	NodePort Services†	All
 

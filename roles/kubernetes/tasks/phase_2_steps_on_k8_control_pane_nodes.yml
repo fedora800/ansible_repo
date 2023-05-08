@@ -31,7 +31,7 @@
 # https://stackoverflow.com/questions/70849989/kube-apiserver-docker-shutting-down-got-signal-terminated/74695838#74695838
 # https://www.vnoob.com/2022/12/kubectl-6443-connection-refused/
 # i backed up and went to /etc/containerd/config.toml around line 125 (only 1 reference for SystemdCgroup) and changed SystemdCgroup = true and bounced containerd
-
+# i see that it was also clearly mentioned in k8 docs itself on https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd
 
 
 #do the kube config 3 steps
