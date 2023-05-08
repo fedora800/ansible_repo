@@ -55,6 +55,7 @@
 #
 #--------------------------------------------------------------------------------
 # install calico networking compoment (CNI) on *ONLY* on master
+# i did this first but according to different notes of diff people, it should be done at last after the kubeadm join *** so need to analyze ****
 #
 #lets use calico and do the kubectl apply of calico file
 # https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises
