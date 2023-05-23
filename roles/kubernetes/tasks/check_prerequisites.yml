@@ -5,16 +5,6 @@
 #
 #run apt update
 #
-#turn off swap and comment out /etc/fstab if there is any swap
-#e.g. - /dev/hda6   swap     swap   defaults        0	0
-#    or  free command shows ->
-#Swap:          2047           5        2042
-#$ grep -i --color swap /proc/meminfo
-#SwapCached:        39196 kB
-#SwapTotal:       8388604 kB
-#SwapFree:        7995420 kB
-#https://www.cyberciti.biz/faq/linux-add-a-swap-file-howto/
-#
 #add the host/ip records to all /etc/hosts  and make sure can ping each other
 #
 #--------------------------------------------------------------------------------

@@ -125,6 +125,57 @@
     tags:
       - facts-diff-ways-xxx
 
+  - name: Check if any swap file is enabled
+    # grep -w because I don't want /swap matching /swapfile, for example
+    ansible.builtin.shell: "/sbin/swapon -s"                            # should show no rows and return code of 0 if no swap
+    register: reg_fstab_swap_count
+    tags:
+      - just-this-task
+ 
+  - name: Print some debug information
+    vars:
+      msg: |
+        Module Variables ("vars"):
+        --------------------------------
+        {{ vars | to_nice_json }}
+ 
+        Environment Variables ("environment"):
+        --------------------------------
+        {{ environment | to_nice_json }}
+ 
+        GROUP NAMES Variables ("group_names"):
+        --------------------------------
+        {{ group_names | to_nice_json }}
+ 
+        GROUPS Variables ("groups"):
+        --------------------------------
+        {{ groups | to_nice_json }}
+ 
+        HOST Variables ("hostvars"):
+        --------------------------------
+        {{ hostvars | to_nice_json }}
+ 
+    debug:
+      msg: "{{ msg.split('\n') }}"
+    tags:
+      - just-this-task
+
+
+------
+In the following playbook, we will define a variable called test and print it using two methods, the first is using the var option and the second is using msg.
+
+- name: playbook
+  vars:
+    test: hello
+  tasks:
+    - name: dubug option 1
+      debug: var=test
+      
+    - name: dubug option 2
+      debug:
+        msg: "{{ test }}"
+-------
+
 # --------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------
 # If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.

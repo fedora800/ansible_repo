@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+  - name: open port on the firewall
+    community.general.ufw:
+      rule: allow
+      proto: tcp
+      direction: in
+      port: '6443'
+      comment: k8 API server
+    when: "'k8_nodes_control' in group_names"
+

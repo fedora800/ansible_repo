@@ -23,3 +23,15 @@
 
 
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+THINGS THAT WORK -
+# copy the hostname and IP mappings across all k8 hosts
+ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass
+# update and upgrade packages all the k8 hosts before we start
+$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/apt_update_and_upgrade.yml --ask-become-pass
+# swap file changes and checks
+ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/swap.yml --ask-become-pass
+# all the firewall changes
+ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/kubernetes/tasks/all_firewall_changes.yml  --ask-become-pass 
+--------------------------------------------------------------------------------

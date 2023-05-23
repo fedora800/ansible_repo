@@ -8,4 +8,4 @@
     apt:
       upgrade: yes
       update_cache: yes
-      cache_valid_time: 86400 
+      cache_valid_time: 86400             # run "update_cache=yes" only if the last one was more than these many seconds ago (1 day)

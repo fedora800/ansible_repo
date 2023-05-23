@@ -1,8 +1,15 @@
 # first export the config variable
 export ANSIBLE_CONFIG=~/git-projects/ansible_repo/ansible.cfg 
 
+# check the inventory file
+ansible-inventory -i ~/git-projects/ansible_repo/inventories/staging  --list
+
+# ping test all the hosts
+ansible -i ~/git-projects/ansible_repo/inventories/staging all -m ping
+
 # we can then run playbook like such 
 cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks
+$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass --check
 $ ansible-playbook main.yml  --ask-become-pass
 
 # run on specific group of hosts from inventory 

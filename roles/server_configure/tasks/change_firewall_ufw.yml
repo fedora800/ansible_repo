@@ -1,0 +1,23 @@
+---
+
+# ufw is not installed in the regular ansible package
+# ansible-galaxy collection list will show if it is. grep for community
+# to install, ansible-galaxy collection install community.general
+# then,we will see it,  ansible-galaxy collection list | grep  gener
+#community.general             6.5.0
+# to use, specify community.general.ufw
+
+- name: 17 (additional of mine) / open tomcat port on the firewall
+  community.general.ufw:
+    rule: allow
+    port: '8080'
+    comment: tomcat server
+
+- name: Allow port range 60000-61000
+  community.general.ufw:
+    rule: allow
+    port: 60000:61000
+    proto: tcp
+    comment: My port range
+
+
