@@ -92,3 +92,13 @@
     when: "'k8_nodes_worker' in group_names"
 
 
+# -6443-
+# The connection to the server 192.168.1.2:6443 was refused - did you specify the right host or port?
+# above was one of the worst errors that gave me a lot of trouble, i think i spent nearly 20 full hours tblshootting and re-installing again and again
+# below links helped me with fixing it
+# https://discuss.kubernetes.io/t/the-connection-to-the-server-192-168-1-2-6443-was-refused-did-you-specify-the-right-host-or-port/22260
+# https://www.linuxtechi.com/install-kubernetes-cluster-on-debian/
+# https://stackoverflow.com/questions/70849989/kube-apiserver-docker-shutting-down-got-signal-terminated/74695838#74695838
+# https://www.vnoob.com/2022/12/kubectl-6443-connection-refused/
+# i backed up and went to /etc/containerd/config.toml around line 125 (only 1 reference for SystemdCgroup) and changed SystemdCgroup = true and bounced containerd
+# i see that it was also clearly mentioned in k8 docs itself on https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd so i wasted time not following that instruction

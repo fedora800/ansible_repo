@@ -1,0 +1,30 @@
+cloud_user@acg-k8-controlp1:~
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+cloud_user@acg-k8-controlp1:~
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl get pods -n kubernetes-dashboard -o wide
+NAME                                         READY   STATUS             RESTARTS      AGE     IP                NODE             NOMINATED NODE   READINESS GATES
+dashboard-metrics-scraper-5cb4f4bb9c-86zqc   1/1     Running            0             3m16s   192.168.129.195   acg-k8-worker2   <none>           <none>
+kubernetes-dashboard-6967859bff-rgmnc        0/1     CrashLoopBackOff   3 (30s ago)   3m16s   192.168.225.3     acg-k8-worker1   <none>           <none>
+cloud_user@acg-k8-controlp1:~
+$ 
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl proxy
+Starting to serve on 127.0.0.1:8001
+

@@ -1,6 +1,8 @@
 ---
 
 https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+https://kubernetes.io/docs/tasks/administer-cluster/migrating-from-dockershim/change-runtime-containerd/
+
 We need to install a container runtime on each node to run pods
 
 Forwarding IPv4 and letting iptables see bridged traffic
@@ -34,12 +36,40 @@ Verify that the net.bridge.bridge-nf-call-iptables, net.bridge.bridge-nf-call-ip
 
 sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
 
-sudo apt-get update
-sudo apt-get install containerd
+--------------------------------------------------------------------------------
 
-sudo containerd config default | sudo tee /etc/containerd/config.toml
+# now install containerd
+# i think i will have to follow docker documentation but not install docker but only containerd
+https://docs.docker.com/engine/install/ubuntu/
 
+# Update the apt package index and install packages to allow apt to use a repository over HTTPS:
+sudo apt update
+sudo apt install ca-certificates curl gnupg
+
+#Add Docker’s official GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Use the following command to set up the repository
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+#Update the apt package index
+sudo apt update
+
+#now do not install anything else from docker but only containerd
+sudo apt install -y containerd.io
+
+#throw away the install created config file /etc/containerd/config.toml and create one from default and restart the daemon
 sudo mkdir -p /etc/containerd
+#sudo containerd config default > /etc/containerd/config.toml
+# instead of above, use below (due to not fully sudo) - 
 sudo containerd config default | sudo tee /etc/containerd/config.toml
+# Configuring the systemd cgroup driver 
+sudo vim the above file and search for pattern -> plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options
+and change the value of this to this -> SystemdCgroup = true
 sudo systemctl restart containerd
 

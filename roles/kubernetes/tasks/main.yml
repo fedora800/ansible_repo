@@ -12,7 +12,7 @@
   become: true
 
   tasks:
-#    - import_tasks: check_prerequisites.yml
+  - import_tasks: check_prerequisites.yml
     when: "'k8_nodes_private_ips' in group_names"
   - import_tasks: phase_1_steps_on_all_k8_nodes.yml
     when: "'k8_nodes_private_ips' in group_names"

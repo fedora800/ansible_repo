@@ -1,6 +1,8 @@
 ---
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+# this one is only for the above sub-section, ie installing of the k8 packages
 
-# run apt update and upgrade, is there in another role
+# run apt update and upgrade, it's there in another role
 # - name: append host and ip records to /etc/hosts file (CALLS from another ROLE)
 - ansible.builtin.include_role:
     name: server_configure
@@ -9,7 +11,7 @@
 
 # install packages needed to use the Kubernetes apt repository
 # sudo apt-get install -y apt-transport-https ca-certificates curl
-- name: apt install https and curl
+- name: apt install https, certificate and curl packages
   apt:
     name:
       - apt-transport-https
@@ -21,6 +23,18 @@
 # sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 # above command will download the remote gpg file into the file and path we gave and create with root:root and 644 perms.
   shell: curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+
+## NOTE - for ubuntu 22.04, it did not work for me and we see online not on k8 site but other searches
+# when we ran sudo apt update
+#    Err:6 https://packages.cloud.google.com/apt kubernetes-xenial InRelease
+#     The following signatures couldn't be verified because the public key is not available: NO_PUBKEY B53DC80D13EDEF05
+#     Reading package lists... Done
+#     W: GPG error: https://packages.cloud.google.com/apt kubernetes-xenial InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY B53DC80D13EDEF05
+#     E: The repository 'https://apt.kubernetes.io kubernetes-xenial InRelease' is not signed.
+#     N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+#    the we need to use different command here  - 
+#    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
 
 - name: Add the Kubernetes apt repository
 #echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -36,6 +50,8 @@
 # if i want to install specific version just in case, sudo apt-get install -y kubelet=1.26.0-00 kubeadm=1.26.0-00 kubectl=1.26.0-00
 # i dont want to install in loop, prefer to be logged as seperate tasks
 # NOTE - all 3 will throw errors continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
+# The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.
+
 - name: install kubelet
   apt:
     name: kubelet
@@ -56,6 +72,14 @@
     state: present
     update_cache: yes
   become: true
+
+# May 24 13:56:22 acg-k8-controlp2 systemd[1]: kubelet.service: Scheduled restart job, restart counter is at 5.
+# May 24 13:56:22 acg-k8-controlp2 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+# May 24 13:56:22 acg-k8-controlp2 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+# May 24 13:56:22 acg-k8-controlp2 kubelet[3695]: E0524 13:56:22.533746    3695 run.go:74] "command failed" err="failed to load kubelet config file, error: failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file \"/var/lib/kubelet/config.yaml\", error: open /var/lib/kubelet/config.yaml: no such file or directory, path: /var/lib/kubelet/config.yaml"
+# May 24 13:56:22 acg-k8-controlp2 systemd[1]: kubelet.service: Main process exited, code=exited, status=1/FAILURE
+# May 24 13:56:22 acg-k8-controlp2 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+
 
 - name: pin the versions used
   shell: sudo apt-mark hold kubelet kubeadm kubectl

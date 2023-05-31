@@ -44,6 +44,99 @@ only then did below things work -
 kubectl port-forward firstpod 4000:80 --address='0.0.0.0'
 Forwarding from 0.0.0.0:4000 -> 80
 
+--------------------------------------------------------------------------------
+26-May-2023 - 
+
+remember to document to always run with sudo and with verbose
+
+$ sudo kubeadm join 172.31.17.223:6443 --token 7ry447.3e7w5rvi1pa1w72i --discovery-token-ca-cert-hash sha256:c67081c9d87e24ab772bdabfc8c802a16dde5ac00b23c3364203a6df01b09aae --v=5
+
+cloud_user@acg-k8-worker1:~$
+cloud_user@acg-k8-worker1:~$ sudo kubeadm join 172.31.17.223:6443 --token 7ry447.3e7w5rvi1pa1w72i --discovery-token-ca-cert-hash sha256:c67081c9d87e24ab772bdabfc8c802a16dde5ac00b23c3364203a6df01b09aae --v=5
+[sudo] password for cloud_user:
+I0526 10:01:13.260993   17045 join.go:412] [preflight] found NodeName empty; using OS hostname as NodeName
+I0526 10:01:13.261286   17045 initconfiguration.go:117] detected and using CRI socket: unix:///var/run/containerd/containerd.sock
+[preflight] Running pre-flight checks
+I0526 10:01:13.261409   17045 preflight.go:93] [preflight] Running general checks
+I0526 10:01:13.261498   17045 checks.go:280] validating the existence of file /etc/kubernetes/kubelet.conf
+I0526 10:01:13.261535   17045 checks.go:280] validating the existence of file /etc/kubernetes/bootstrap-kubelet.conf
+I0526 10:01:13.261571   17045 checks.go:104] validating the container runtime
+I0526 10:01:16.804602   17045 checks.go:639] validating whether swap is enabled or not
+I0526 10:01:16.804848   17045 checks.go:370] validating the presence of executable crictl
+I0526 10:01:16.804918   17045 checks.go:370] validating the presence of executable conntrack
+I0526 10:01:16.805058   17045 checks.go:370] validating the presence of executable ip
+I0526 10:01:16.805106   17045 checks.go:370] validating the presence of executable iptables
+I0526 10:01:16.805172   17045 checks.go:370] validating the presence of executable mount
+I0526 10:01:16.805213   17045 checks.go:370] validating the presence of executable nsenter
+I0526 10:01:16.805400   17045 checks.go:370] validating the presence of executable ebtables
+I0526 10:01:16.805605   17045 checks.go:370] validating the presence of executable ethtool
+I0526 10:01:16.805645   17045 checks.go:370] validating the presence of executable socat
+I0526 10:01:16.805869   17045 checks.go:370] validating the presence of executable tc
+I0526 10:01:16.806058   17045 checks.go:370] validating the presence of executable touch
+I0526 10:01:16.806107   17045 checks.go:516] running all checks
+I0526 10:01:16.828384   17045 checks.go:401] checking whether the given node name is valid and reachable using net.LookupHost
+I0526 10:01:16.828730   17045 checks.go:605] validating kubelet version
+I0526 10:01:16.899597   17045 checks.go:130] validating if the "kubelet" service is enabled and active
+I0526 10:01:17.098970   17045 checks.go:203] validating availability of port 10250
+I0526 10:01:17.099174   17045 checks.go:280] validating the existence of file /etc/kubernetes/pki/ca.crt
+I0526 10:01:17.099215   17045 checks.go:430] validating if the connectivity type is via proxy or direct
+I0526 10:01:17.099265   17045 checks.go:329] validating the contents of file /proc/sys/net/bridge/bridge-nf-call-iptables
+I0526 10:01:17.099322   17045 checks.go:329] validating the contents of file /proc/sys/net/ipv4/ip_forward
+I0526 10:01:17.099365   17045 join.go:529] [preflight] Discovering cluster-info
+I0526 10:01:17.099534   17045 token.go:80] [discovery] Created cluster-info discovery client, requesting info from "172.31.17.223:6443"
+I0526 10:01:17.730386   17045 token.go:118] [discovery] Requesting info from "172.31.17.223:6443" again to validate TLS against the pinned public key
+I0526 10:01:17.773664   17045 token.go:135] [discovery] Cluster info signature and contents are valid and TLS certificate validates against pinned roots, will use API Server "172.31.17.223:6443"
+I0526 10:01:17.773788   17045 discovery.go:52] [discovery] Using provided TLSBootstrapToken as authentication credentials for the join process
+I0526 10:01:17.773863   17045 join.go:543] [preflight] Fetching init configuration
+I0526 10:01:17.773891   17045 join.go:589] [preflight] Retrieving KubeConfig objects
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+I0526 10:01:17.829142   17045 kubelet.go:74] attempting to download the KubeletConfiguration from ConfigMap "kubelet-config"
+I0526 10:01:17.835081   17045 interface.go:432] Looking for default routes with IPv4 addresses
+I0526 10:01:17.835115   17045 interface.go:437] Default route transits interface "ens5"
+I0526 10:01:17.835338   17045 interface.go:209] Interface ens5 is up
+I0526 10:01:17.835432   17045 interface.go:257] Interface "ens5" has 3 addresses :[172.31.30.178/20 2a05:d01c:2c7:d803:49e0:1cb9:78c7:88ea/128 fe80::435:efff:fe17:ab30/64].
+I0526 10:01:17.835467   17045 interface.go:224] Checking addr  172.31.30.178/20.
+I0526 10:01:17.835480   17045 interface.go:231] IP found 172.31.30.178
+I0526 10:01:17.835492   17045 interface.go:263] Found valid IPv4 address 172.31.30.178 for interface "ens5".
+I0526 10:01:17.835502   17045 interface.go:443] Found active IP 172.31.30.178
+I0526 10:01:17.840653   17045 preflight.go:104] [preflight] Running configuration dependant checks
+I0526 10:01:17.840692   17045 controlplaneprepare.go:225] [download-certs] Skipping certs download
+I0526 10:01:17.840709   17045 kubelet.go:121] [kubelet-start] writing bootstrap kubelet config file at /etc/kubernetes/bootstrap-kubelet.conf
+I0526 10:01:17.841410   17045 kubelet.go:136] [kubelet-start] writing CA certificate at /etc/kubernetes/pki/ca.crt
+I0526 10:01:17.842136   17045 kubelet.go:157] [kubelet-start] Checking for an existing Node in the cluster with name "acg-k8-worker1" and status "Ready"
+I0526 10:01:17.850258   17045 kubelet.go:172] [kubelet-start] Stopping the kubelet
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+I0526 10:01:20.220327   17045 cert_rotation.go:137] Starting client certificate rotation controller
+I0526 10:01:20.221192   17045 kubelet.go:220] [kubelet-start] preserving the crisocket information for the node
+I0526 10:01:20.291456   17045 patchnode.go:31] [patchnode] Uploading the CRI Socket information "unix:///var/run/containerd/containerd.sock" to the Node API object "acg-k8-worker1" as an annotation
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+cloud_user@acg-k8-worker1:~$ 
+
+cloud_user@acg-k8-controlp1:~
+$ kubectl get nodes
+NAME               STATUS   ROLES           AGE     VERSION
+acg-k8-controlp1   Ready    control-plane   127m    v1.27.2
+acg-k8-worker1     Ready    <none>          3m56s   v1.27.2
+acg-k8-worker2     Ready    <none>          3m54s   v1.27.2
+acg-k8-worker3     Ready    <none>          3m52s   v1.27.2
+cloud_user@acg-k8-controlp1:~
+$ 
+
+
+
+--------------------------------------------------------------------------------
+
+
 
 
 
