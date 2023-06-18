@@ -73,3 +73,13 @@ sudo vim the above file and search for pattern -> plugins."io.containerd.grpc.v1
 and change the value of this to this -> SystemdCgroup = true
 sudo systemctl restart containerd
 
+--------------------------------------------------------------------------------
+
+-name  add config to k8.conf
+-name  do the sudo modprob
+-name  persist sysctl params across reboots
+-name Apply sysctl params without reboot
+
+
+
+

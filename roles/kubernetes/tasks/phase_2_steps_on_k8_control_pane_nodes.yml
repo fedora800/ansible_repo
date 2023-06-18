@@ -438,6 +438,17 @@ calico-system      csi-node-driver-hgnfr                      2/2     Running   
 NOTE - it might take 10 mins even to show as these all as running
      - did NOT do the step 4 / removing of taints so that for Single node cluster allow Pods to run on master nodes
 
+
+some documentation also mentions we need to open firewall for calico ports - 
+https://www.linuxtechi.com/install-kubernetes-cluster-on-debian/
+below need to be done on ALL nodes
+# https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements
+sudo ufw allow 179/tcp    comment "Calico networking (BGP)"
+sudo ufw allow 4789/udp   comment "Calico networking with VXLAN enabled"
+sudo ufw allow 51820/udp  comment "Calico networking with IPv4 Wireguard enabled"
+sudo ufw allow 51821/udp  comment "Calico networking with IPv6 Wireguard enabled"
+
+
 --------------------------------------------------------------------------------
 
 
