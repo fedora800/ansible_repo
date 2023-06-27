@@ -7,10 +7,14 @@ ansible-inventory -i ~/git-projects/ansible_repo/inventories/staging  --list
 # ping test all the hosts
 ansible -i ~/git-projects/ansible_repo/inventories/staging all -m ping
 
+# ping test just 1 of the hosts from the list
+ansible -i ~/git-projects/ansible_repo/inventories/staging acg-k8-controlp2 -m ping
+
 # we can then run playbook like such 
 cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks
 $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass --check
 $ ansible-playbook main.yml  --ask-become-pass
 
-# run on specific group of hosts from inventory 
+# run on specific group of hosts from inventory or even just 1 host
 $ ansible-playbook --limit=k8_nodes_worker --ask-become-pass ~/git-projects/ansible_repo/roles/server_configure/tasks/main.yml --tags=check_release
+$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --limit=acg-k8-controlp2 ~/git-projects/ansible_repo/roles/server_configure/tasks/docker.yml --ask-become-pass --tags=just-this-task --check

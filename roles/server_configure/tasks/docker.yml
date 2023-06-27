@@ -1,28 +1,36 @@
 ---
 
 # https://docs.docker.com/engine/install/ubuntu/
+# last checked as of 27-Jun-2023
 
 - hosts: all
   become: true
 
+  vars:
+    container_count: 3
+    default_container_name: ctr-ubuntu
+    default_container_image: ubuntu
+    default_container_command: sleep 1d
+
   tasks:
   
     # they were called diff names, so docker website says make sure to uninstall them all
-    - name: Un-install old docker package versions, if any
+    # but if we want to keep running this again and again, this will unnecessarily uninstall and re-install, so probably we need to comment out on 2nd and later runs
+    # this will throw errors if docker not in apt pkg index in the first place
+    - name: Un-install old docker package versions/ if any
       apt:
         name: "{{ item }}"
         state: absent
         update_cache: yes
       loop:
-        - docker 
-        - docker-engine 
         - docker.io 
+        - docker-doc
+        - docker-compose
+        - podman-docker
         - containerd 
         - runc
-      tags:
-        - just-this-task
   
-    - name: Update the apt package index and install packages to allow apt to use a repository over HTTPS
+    - name: Set up the repository/ Update the apt package index and install packages to allow apt to use a repository over HTTPS
       apt:
         name: "{{ item }}"
         state: present
@@ -32,7 +40,7 @@
          - curl
 
     # i have just split the gnupg from above into a new task to just try out the when clause
-    - name: Ensure additional dependencies (gnupg) are installed 
+    - name: Set up the repository/ Ensure additional dependencies (gnupg) are installed 
       apt:
         name: gnupg
         state: present
@@ -41,7 +49,7 @@
 
     # Add Docker’s official GPG key:
     # sudo install -m 0755 -d /etc/apt/keyrings
-    - name: Create the directory (if not there) to store the keyrings
+    - name: Set up the repository/ Add official GPG key - Create the directory (if not there) to store the keyrings
       file:
         path: /etc/apt/keyrings
         state: directory
@@ -58,31 +66,41 @@
     # https://www.jeffgeerling.com/blog/2022/aptkey-deprecated-debianubuntu-how-fix-ansible
     # https://stackoverflow.com/questions/71585303/how-can-i-manage-keyring-files-in-trusted-gpg-d-with-ansible-playbook-since-apt
     # https://fabianlee.org/2023/04/17/ansible-adding-custom-apt-repository-with-signed-by-gpg-key/
-    # using a .asc file will avoid the need to do the extra gpg --dearmor step entirely
-    - name: Download docker gpg key file using get_url module into apt keyrings directory without using gpg armor 
+    - name: Set up the repository/ Add official GPG key - Download docker "PGP public key block Public-Key (old)" key file using get_url module 
       become: true
       get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /etc/apt/keyrings/docker.asc
+        #dest: /etc/apt/keyrings/docker.asc
+        dest: /tmp/docker.pgpkey.oldformat
         mode: 0755
+
+    - name: Set up the repository/ Add official GPG key - Convert the downloaded PGP key using gpg dearmor and save in the gpg format which is "OpenPGP Public Key Version 4"
+      become: true
+      ansible.builtin.shell: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg < /tmp/docker.pgpkey.oldformat; file /tmp/docker.pgpkey.oldformat /etc/apt/keyrings/docker.gpg"
+      register: reg_file_cmd_output
+
+    - name: Print output of above file cmd output on the key files
+      debug:
+      #  msg: "{{ reg_system_uptime }}"              # shows all fields
+        msg: "{{ reg_file_cmd_output.stdout }}"       # only the stdout
 
     # echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
     #          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # *** i am HARD CODING for now ***
     # first part evaluates to - deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
-    - name: Set up the requisite docker repository in apt
+    - name: Set up the repository/ Set up the requisite docker repository in apt sources directory
       become: true
       apt_repository:
         # this will change depending on architecture and versions etc
-        # ** i was not able to make the docker.asc work, i had to run the curl and armor to create the docker.gpg in proper binary gpg format, then this task worked **
         repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
         state: present
-        filename: docker        # looks like the .list extension gets appended
+        filename: docker        # the .list extension gets appended
         update_cache: yes
-        mode: 0755
+        mode: 0644
 
     # now install docker engine
     # sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    - name: Update the apt package index and install docker packages
+    - name: Install Docker Engine/ Update the apt package index and install docker packages
       apt:
         name: "{{ item }}"
         state: present
@@ -94,12 +112,28 @@
         - docker-buildx-plugin
         - docker-compose-plugin
 
+    # Below are 2 testing tasks to verify docker can run containers on the remote hosts after installation
+    # https://www.digitalocean.com/community/tutorials/how-to-use-ansible-to-install-and-set-up-docker-on-ubuntu-22-04
+    - name: Testing/ Pull default Docker image
+      community.docker.docker_image:
+        name: "{{ default_container_image }}"
+        source: pull
+      tags:
+        - just-this-task
+
+    # uses community docker module
+    - name: Testing/ Create default containers
+      community.docker.docker_container:
+        name: "{{ default_container_name }}{{ item }}"
+        image: "{{ default_container_image }}"
+        command: "{{ default_container_command }}"
+        state: present
+      with_sequence: count={{ container_count }}
+      tags:
+        - just-this-task
 
 
 # --------------------------------------------------------------------------------
-
-  #       - apt-transport-https
-  #       - software-properties-common
 
 # https://github.com/geerlingguy/ansible-role-docker/blob/master/tasks/setup-Debian.yml
 
