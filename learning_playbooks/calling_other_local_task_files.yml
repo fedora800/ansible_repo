@@ -1,0 +1,9 @@
+---
+# https://github.com/l3ib/mastodon-ansible/blob/main/bare/roles/postgres/tasks/main.yml
+
+- include_tasks: packages.yml
+- include_tasks: database.yml
+  args:
+    apply:
+      become: true
+      become_user: postgres
