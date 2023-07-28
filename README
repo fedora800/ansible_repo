@@ -4,6 +4,11 @@ export ANSIBLE_CONFIG=~/git-projects/ansible_repo/ansible.cfg
 # check the inventory file
 ansible-inventory -i ~/git-projects/ansible_repo/inventories/staging  --list
 
+# debug
+ansible -i ~/git-projects/ansible_repo/inventories/staging all -vvvv -m ping 
+ANSIBLE_DEBUG=true ansible -i ~/git-projects/ansible_repo/inventories/staging all -m ping 
+ANSIBLE_LOG_PATH=/tmp/ansible_dynamic_$(date +"%d%m%Y_%H%M%S").log ansible-playbook my-playbook.yaml
+
 # ping test all the hosts
 ansible -i ~/git-projects/ansible_repo/inventories/staging all -m ping
 

@@ -7,18 +7,24 @@
       - "../vars/main.yml"
 
    tasks:
+#     - name: Import tasks from run_shell_cmd_lsb_release.yml
+#       ansible.builtin.import_tasks: run_shell_cmd_lsb_release.yml
+
+     - name: Import tasks from apt_update_and_upgrade.yml
+       ansible.builtin.import_tasks: apt_update_and_upgrade.yml
+
+# --- below todo ---
 #    - import_tasks: append_records_to_etc_hosts_file.yml
-    - import_tasks: run_shell_cmd_lsb_release.yml
 #    - import_tasks: generate_password.yml
 #    - import_tasks: add_user.yml
 
-     - name: Include the example role and run its tasks (at this point in the sequence of tasks)
-       #https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_role_module.html
-       # also read about import_role
-       include_role:
-         name: example
+#     - name: Include the example role and run its tasks (at this point in the sequence of tasks)
+#       #https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_role_module.html
+#       # also read about import_role
+#       include_role:
+#         name: example
 
-    - import_tasks: install_with_apt.yml
+#    - import_tasks: install_with_apt.yml
 # lot of things in docker.yml to copy over here in server configure
 
 

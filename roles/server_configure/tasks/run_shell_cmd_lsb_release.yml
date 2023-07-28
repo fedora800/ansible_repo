@@ -1,4 +1,3 @@
-
 ---
 
 # just to test the shell module to run remote command and check output
@@ -14,3 +13,13 @@
     msg: "var = {{ reg_os_info.stdout_lines }} "
   tags:
     - check_release
+
+
+- name: copy a file from ansible server onto remote hosts into /tmp dir
+  copy:
+    src: /etc/hostname
+    dest: /tmp/
+    mode: 0755
+  tags:
+    - check_release
+
