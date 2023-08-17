@@ -1,17 +1,16 @@
 ---
 # tasks file for server_configure
 
- - hosts: all
-   become: true
-   vars_files:
-      - "../vars/main.yml"
+- name: Import tasks from apt_update_and_upgrade.yml
+  ansible.builtin.import_tasks: apt_update_and_upgrade.yml
 
-   tasks:
-#     - name: Import tasks from run_shell_cmd_lsb_release.yml
-#       ansible.builtin.import_tasks: run_shell_cmd_lsb_release.yml
+- name: Import tasks from role server_configure - append_records_to_etc_hosts_file_tmp_oci.yml
+  ansible.builtin.import_tasks: append_records_to_etc_hosts_file_tmp_oci.yml
 
-     - name: Import tasks from apt_update_and_upgrade.yml
-       ansible.builtin.import_tasks: apt_update_and_upgrade.yml
+- name: Import tasks from role server_configure - swap.yml
+  ansible.builtin.import_tasks: swap.yml
+  tags:
+    - just-this-task
 
 # --- below todo ---
 #    - import_tasks: append_records_to_etc_hosts_file.yml

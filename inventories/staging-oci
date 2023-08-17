@@ -1,13 +1,13 @@
 
-[oci-k8_nodes_control]
-oci-k8-controlp1       ansible_host=132.145.30.56
+[oci_k8_nodes_control]
+oci-k8-control1        ansible_host=132.145.30.56
 
-[oci-k8_nodes_worker]
+[oci_k8_nodes_worker]
 oci-k8-worker1         ansible_host=140.238.100.117
 oci-k8-worker2         ansible_host=132.145.18.212
 oci-k8-worker3         ansible_host=140.238.101.96
 
-[oci-k8_nodes_public_ips:children]
-oci-k8_nodes_control
-oci-k8_nodes_worker
+[oci_k8_nodes_public_ips:children]
+oci_k8_nodes_control
+oci_k8_nodes_worker
 

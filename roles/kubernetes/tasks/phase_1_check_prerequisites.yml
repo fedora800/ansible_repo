@@ -10,10 +10,12 @@
 #--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
 
-# - name : check if new nodes are accessible	NOT-WORKING
-#   register: reg_ping
-#   debug:
-#     msg: reg_ping
+ - name : check if new nodes are accessible	NOT-WORKING
+   register: reg_ping
+   debug:
+     msg: reg_ping
+   tags:
+     - just-this-task
 
 # - name : check if host satisfies minimum memory criteria (2 GB)
 #   debug: 
@@ -61,16 +63,3 @@
 #     msg: "not enough RAM (should be atleast 2 GB)"
 #   when: ansible_memory_mb.real.total < 2048
 
-# appends a block of hostname and ip records to bottom of /etc/hosts file
-# giving task name will make it seem in the output as if 2 seperate tasks are being done
-# it still does but not that explicit
-# - name: append host and ip records to /etc/hosts file (CALLS from another ROLE)
-- ansible.builtin.include_role:
-    name: server_configure
-    # use only this task, name should match the yml file
-    tasks_from: append_records_to_etc_hosts_file
-
-# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#check-required-ports
-# Check required ports 
-  - import_tasks: all_firewall_changes.yml
-    when: "'k8_nodes_private_ips' in group_names"

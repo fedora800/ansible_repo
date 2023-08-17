@@ -11,9 +11,13 @@ ANSIBLE_LOG_PATH=/tmp/ansible_dynamic_$(date +"%d%m%Y_%H%M%S").log ansible-playb
 
 # ping test all the hosts
 ansible -i ~/git-projects/ansible_repo/inventories/staging all -m ping
+ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m ping -u ubuntu
 
 # ping test just 1 of the hosts from the list
 ansible -i ~/git-projects/ansible_repo/inventories/staging acg-k8-controlp2 -m ping
+
+# run a command on all hosts
+ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m shell -a "hostnamectl" -u ubuntu                                                                                        
 
 # we can then run playbook like such 
 cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks

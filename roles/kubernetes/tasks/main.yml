@@ -7,31 +7,61 @@
 # acg-k8-controlp1   Ready    control-plane   36m   v1.26.0   172.31.104.228   <none>        Ubuntu 22.04.2 LTS   5.19.0-1024-aws   containerd://1.6.12
 
 
-- hosts: k8_nodes_private_ips
+#---
+#
+# 70 - ansible.builtin.include_role:
+# 71     name: server_configure
+# 72     # use only this task, name should match the yml file
+# 73     tasks_from: swap
+#
+
+- hosts: acg_k8_nodes_private_ips
 #- hosts: all
   become: true
+  roles:
+    - server_configure
 
   tasks:
-  - import_tasks: check_prerequisites.yml
-    when: "'k8_nodes_private_ips' in group_names"
-  - import_tasks: phase_1_steps_on_all_k8_nodes.yml
-    when: "'k8_nodes_private_ips' in group_names"
-  - import_tasks: phase_2_steps_on_k8_control_pane_nodes.yml
-    when: "'k8_nodes_control' in group_names"
-  - import_tasks: phase_3_steps_on_k8_worker_nodes.yml
-    when: "'k8_nodes_worker' in group_names"
+  - name: Call tasks from server_configure/swap.yml file		# TESTED-AND-WORKS
+    ansible.builtin.include_role:
+      name: server_configure
+      tasks_from: swap
+    tags:
+      - server-tasks-file-1
 
+  - name: Call tasks from server_configure/append_records_to_etc_hosts_file.yml file		# TESTED-AND-WORKS
+    ansible.builtin.include_role:
+      name: server_configure
+      tasks_from: append_records_to_etc_hosts_file
+    tags:
+      - server-tasks-file-2
 
+#  - import_tasks: phase_2_apply_pre-install_changes.yml
+#    when: "'k8_nodes_private_ips' in group_names"
+#    tags:
+#      - server-tasks-file-2
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-THINGS THAT WORK -
-# copy the hostname and IP mappings across all k8 hosts
-ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass
-# update and upgrade packages all the k8 hosts before we start
-$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/apt_update_and_upgrade.yml --ask-become-pass
-# swap file changes and checks
-ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/swap.yml --ask-become-pass
-# all the firewall changes
-ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/kubernetes/tasks/all_firewall_changes.yml  --ask-become-pass 
---------------------------------------------------------------------------------
+#  - name: Import XXXX
+#    ansible.builtin.import_tasks: swap.yml
+
+#  - import_tasks: phase_1_check_prerequisites.yml
+#    when: "'k8_nodes_private_ips' in group_names"
+#  - import_tasks: phase_2_steps_on_all_k8_nodes.yml
+#    when: "'k8_nodes_private_ips' in group_names"
+#  - import_tasks: phase_3_steps_on_k8_control_pane_nodes.yml
+#    when: "'k8_nodes_control' in group_names"
+#  - import_tasks: phase_4_steps_on_k8_worker_nodes.yml
+#    when: "'k8_nodes_worker' in group_names"
+#
+#
+
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#THINGS THAT WORK -
+## copy the hostname and IP mappings across all k8 hosts
+#ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass
+## update and upgrade packages all the k8 hosts before we start
+#$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/apt_update_and_upgrade.yml --ask-become-pass
+## all the firewall changes
+#ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/kubernetes/tasks/all_firewall_changes.yml  --ask-become-pass 
+#--------------------------------------------------------------------------------

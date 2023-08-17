@@ -1,0 +1,17 @@
+---
+
+#--------------------------------------------------------------------------------
+# make the below changes on *BOTH* master and worker nodes before we start deploying kubernetes packages
+#--------------------------------------------------------------------------------
+
+# appends a block of hostname and ip records to bottom of /etc/hosts file
+# giving task name makes it seem in the output as if 2 seperate tasks are being done, so avoid for now
+# it still does but not that explicit
+# - name: append host and ip records to /etc/hosts file (CALLS from another ROLE)
+- ansible.builtin.include_role:
+    name: server_configure
+    # use only this task, name should match the yml file
+    tasks_from: append_records_to_etc_hosts_file
+  tags:
+    - server-tasks-file-2
+

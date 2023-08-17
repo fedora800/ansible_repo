@@ -4,22 +4,21 @@
 # $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --ask-become-pass append_records_to_etc_hosts_file.yml 
 
 
-- hosts: all
+
+# appends a block of hostname and ip records to bottom of /etc/hosts file
+- name: Append Hostname and IP records block to /etc/hosts file		# TESTED-AND-WORKS
   become: true
-
-  tasks:
-  # appends a block of hostname and ip records to bottom of /etc/hosts file
-  - name: append host and ip records to /etc/hosts file
-    blockinfile:
-      path: /etc/hosts
-      state: present
-      insertafter: EOF
-      backup: yes
-      marker: "# {mark} ANSIBLE MANAGED BLOCK"
-      block: |
-        172.31.17.223     acg-k8-controlp1
-        172.31.31.123     acg-k8-controlp2
-        172.31.30.178     acg-k8-worker1
-        172.31.17.229     acg-k8-worker2
-        172.31.28.86      acg-k8-worker3
-
+  blockinfile:
+    path: /etc/hosts
+    state: present
+    insertafter: EOF
+    backup: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      172.31.17.223     acg-k8-controlp1
+      172.31.31.123     acg-k8-controlp2
+      172.31.30.178     acg-k8-worker1
+      172.31.17.229     acg-k8-worker2
+      172.31.28.86      acg-k8-worker3
+  tags:
+    - server-tasks-file-2
