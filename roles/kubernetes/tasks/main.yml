@@ -18,28 +18,28 @@
 - hosts: acg_k8_nodes_private_ips
 #- hosts: all
   become: true
-  roles:
-    - server_configure
+#  roles:
+#    - server_configure
 
   tasks:
-  - name: Call tasks from server_configure/swap.yml file		# TESTED-AND-WORKS
-    ansible.builtin.include_role:
-      name: server_configure
-      tasks_from: swap
-    tags:
-      - server-tasks-file-1
+#  - name: Call tasks from server_configure/swap.yml file		# TESTED-AND-WORKS
+#    ansible.builtin.include_role:
+#      name: server_configure
+#      tasks_from: swap
+#    tags:
+#      - server-tasks-file-1
 
-  - name: Call tasks from server_configure/append_records_to_etc_hosts_file.yml file		# TESTED-AND-WORKS
-    ansible.builtin.include_role:
-      name: server_configure
-      tasks_from: append_records_to_etc_hosts_file
-    tags:
-      - server-tasks-file-2
-
-#  - import_tasks: phase_2_apply_pre-install_changes.yml
-#    when: "'k8_nodes_private_ips' in group_names"
+#  - name: Call tasks from server_configure/append_records_to_etc_hosts_file.yml file		# TESTED-AND-WORKS
+#    ansible.builtin.include_role:
+#      name: server_configure
+#      tasks_from: append_records_to_etc_hosts_file
 #    tags:
 #      - server-tasks-file-2
+
+  - import_tasks: phase_2_apply_pre-install_changes.yml
+    when: "'k8_nodes_private_ips' in group_names"
+    tags:
+      - server-tasks-file-2
 
 #  - name: Import XXXX
 #    ansible.builtin.import_tasks: swap.yml

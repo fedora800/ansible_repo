@@ -4,8 +4,8 @@
 - name: Import tasks from apt_update_and_upgrade.yml
   ansible.builtin.import_tasks: apt_update_and_upgrade.yml
 
-- name: Import tasks from role server_configure - append_records_to_etc_hosts_file_tmp_oci.yml
-  ansible.builtin.import_tasks: append_records_to_etc_hosts_file_tmp_oci.yml
+- name: Import tasks from role server_configure - append_records_to_etc_hosts_file.yml
+  ansible.builtin.import_tasks: append_records_to_etc_hosts_file.yml
 
 - name: Import tasks from role server_configure - swap.yml
   ansible.builtin.import_tasks: swap.yml
