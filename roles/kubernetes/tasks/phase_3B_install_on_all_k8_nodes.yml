@@ -16,6 +16,7 @@
     name:
       - apt-transport-https
       - ca-certificates
+      - curl
     state: present
   become: true
 
@@ -36,6 +37,29 @@
 #    the we need to use different command here  - 
 #    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
 
+# -- now for v1.28 , to do below ---
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+#ubuntu@oci-k8-control1:/etc/apt/sources.list.d$ apt list kubelet
+#Listing... Done
+#kubelet/unknown 1.28.0-1.1 amd64
+#kubelet/unknown 1.28.0-1.1 arm64
+#kubelet/unknown 1.28.0-1.1 ppc64el
+#kubelet/unknown 1.28.0-1.1 s390x
+#ubuntu@oci-k8-control1:/etc/apt/sources.list.d$ apt list kubectl
+#Listing... Done
+#kubectl/unknown 1.28.0-1.1 amd64
+#kubectl/unknown 1.28.0-1.1 arm64
+#kubectl/unknown 1.28.0-1.1 ppc64el
+#kubectl/unknown 1.28.0-1.1 s390x
+#ubuntu@oci-k8-control1:/etc/apt/sources.list.d$ apt list kubeadm
+#Listing... Done
+#kubeadm/unknown 1.28.0-1.1 amd64
+#kubeadm/unknown 1.28.0-1.1 arm64
+#kubeadm/unknown 1.28.0-1.1 ppc64el
+#kubeadm/unknown 1.28.0-1.1 s390x
+# --
+
 - name: Add the Kubernetes apt repository
 #echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
   shell: echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -48,6 +72,7 @@
     tasks_from: apt_update_and_upgrade
 
 # if i want to install specific version just in case, sudo apt-get install -y kubelet=1.26.0-00 kubeadm=1.26.0-00 kubectl=1.26.0-00
+# sudo apt install -y kubelet kubeadm kubectl
 # i dont want to install in loop, prefer to be logged as seperate tasks
 # NOTE - all 3 will throw errors continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
 # The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.

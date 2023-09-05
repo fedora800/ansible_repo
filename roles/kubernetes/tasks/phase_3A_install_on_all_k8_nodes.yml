@@ -1,11 +1,11 @@
 ---
 
-https://kubernetes.io/docs/setup/production-environment/container-runtimes/
-https://kubernetes.io/docs/tasks/administer-cluster/migrating-from-dockershim/change-runtime-containerd/
+Method chosen is "Installing Kubeadm" - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 
-We need to install a container runtime on each node to run pods
+For above, we first need to install the container runtime on each node so we can run the pods - https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+So, do the steps below
 
-Forwarding IPv4 and letting iptables see bridged traffic
+### Forwarding IPv4 and letting iptables see bridged traffic ###
 
 Execute the below mentioned instructions:
 
@@ -27,8 +27,7 @@ EOF
 # Apply sysctl params without reboot
 sudo sysctl --system
 
-Verify that the br_netfilter, overlay modules are loaded by running below instructions:
-
+#Verify that the br_netfilter, overlay modules are loaded by running below instructions:
 lsmod | grep br_netfilter
 lsmod | grep overlay
 
@@ -62,14 +61,18 @@ sudo apt update
 
 #now do not install anything else from docker but only containerd
 sudo apt install -y containerd.io
+(apt show containerd | grep -i version   ---> Version: 1.7.2-0ubuntu1~22.04.1)
 
+# now back to kubernetes doc, section "Configuring the systemd cgroup driver" and refer to the "Note"
 #throw away the install created config file /etc/containerd/config.toml and create one from default and restart the daemon
-sudo mkdir -p /etc/containerd
+#sudo rm -f /etc/containerd/config.toml
+sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
 #sudo containerd config default > /etc/containerd/config.toml
 # instead of above, use below (due to not fully sudo) - 
 sudo containerd config default | sudo tee /etc/containerd/config.toml
 # Configuring the systemd cgroup driver 
-sudo vim the above file and search for pattern -> plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options
+sudo vim /etc/containerd/config.toml
+#and search for pattern -> plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options
 and change the value of this to this -> SystemdCgroup = true
 sudo systemctl restart containerd
 

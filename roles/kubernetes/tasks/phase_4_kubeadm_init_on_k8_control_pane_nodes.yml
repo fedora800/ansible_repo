@@ -10,7 +10,7 @@
 #
 #kubeadm init    (and do with --v=5)
 # this has given me diff types of errors all the time during pre-flight checks, like such - 
-#     sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23 --v=5
+#     sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23 --v=5      # where advertise address in the private ip of the control plane node
 #     sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --kubernetes-version 1.26.0 --v=5   (this one i did for 1.26 version worked on 07-May-2023, best to use this version for now)
 
 # also check the 26-May-2023 output install i did below
@@ -113,7 +113,7 @@ $ ip a | egrep "group|inet"
 #
 #now all the nodes should show ready
 #
-#we will see a new network interface (maybe called tun10@NONE) which will be on the 192.168.X.X subnet if we had configured our kubadm init with that network
+#we will see a new network interface (maybe called vxlan.calico) which will be on the 192.168.X.X subnet if we had configured our kubadm init with that network
 #
 #--------------------------------------------------------------------------------
 ## https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04
@@ -357,7 +357,8 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 172.31.17.223:6443 --token 7ry447.3e7w5rvi1pa1w72i \
+** so looks like i need to do as sudo **
+sudo kubeadm join 172.31.17.223:6443 --token 7ry447.3e7w5rvi1pa1w72i \
         --discovery-token-ca-cert-hash sha256:c67081c9d87e24ab772bdabfc8c802a16dde5ac00b23c3364203a6df01b09aae
 cloud_user@acg-k8-controlp1:~/git-projects/dotfiles
 $
@@ -437,6 +438,15 @@ calico-system      csi-node-driver-hgnfr                      2/2     Running   
 
 NOTE - it might take 10 mins even to show as these all as running
      - did NOT do the step 4 / removing of taints so that for Single node cluster allow Pods to run on master nodes
+
+
+-- taken from tigera doc, run below command and each pod should show running, only then continue -
+ubuntu@oci-k8-control1:~$ kubectl get pods -n calico-system
+NAME                                       READY   STATUS    RESTARTS   AGE
+calico-kube-controllers-7d879fd774-bw8gt   1/1     Running   0          3m1s
+calico-node-8wjjx                          1/1     Running   0          3m1s
+calico-typha-678588bf48-55vtb              1/1     Running   0          3m1s
+csi-node-driver-7vwdz                      2/2     Running   0          3m1s
 
 
 some documentation also mentions we need to open firewall for calico ports - 
