@@ -1,0 +1,25 @@
+
+installed **v1.27** kubernetes on brand new cluster nodes on the usual acloudguru nodes 
+BUT, i had issues on ubuntu 22 and had to delete those nodes
+it worked on **UBUNTU 20** version.
+i followed their exact steps from hands-on lab ->  Chapter 2.1 / Learn Kubernetes by Doing - Building a Kubernetes 1.27 Cluster with kubeadm
+https://learn.acloud.guru/course/82b39fac-b9f7-43d1-8f52-6a89efe5202f/learn/0959d19e-1348-407e-963a-2d9ab44b85bc/00514594-a3ea-404b-9abe-ca8520671e4b/lab/00514594-a3ea-404b-9abe-ca8520671e4b
+did not have to fiddle with changes in the config.toml either
+only thing was install containerd instead of containerd.io which was not found.
+was smooth
+no firewall changes done, but did not create and use any pods yet. just the installation part was done successfully.
+
+
+--------------------------------------------------------------------------------
+
+loud_user@acg-k8-control1:~$ date
+Fri Nov 10 17:20:45 UTC 2023
+cloud_user@acg-k8-control1:~$ kubectl get nodes -o wide
+NAME              STATUS   ROLES           AGE    VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+acg-k8-control1   Ready    control-plane   46m    v1.27.0   172.31.127.104   <none>        Ubuntu 20.04.6 LTS   5.15.0-1047-aws   containerd://1.7.2
+acg-k8-worker1    Ready    <none>          108s   v1.27.0   172.31.116.220   <none>        Ubuntu 20.04.6 LTS   5.15.0-1047-aws   containerd://1.7.2
+acg-k8-worker2    Ready    <none>          110s   v1.27.0   172.31.121.182   <none>        Ubuntu 20.04.6 LTS   5.15.0-1047-aws   containerd://1.7.2
+acg-k8-worker3    Ready    <none>          95s    v1.27.0   172.31.127.235   <none>        Ubuntu 20.04.6 LTS   5.15.0-1047-aws   containerd://1.7.2
+cloud_user@acg-k8-control1:~$ 
+
+
