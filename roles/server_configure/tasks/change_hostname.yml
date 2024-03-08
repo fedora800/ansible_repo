@@ -3,19 +3,22 @@
 # referred https://github.com/codylane/ansible-playbook-change-hostname
 # https://www.middlewareinventory.com/blog/ansible-inventory_hostname-ansible_hostname-variables/
 
-- hosts: all
-  become: true
 
-  tasks:
-  - name: Print the hostnames in inventory
-    debug:
-      msg: "{{ inventory_hostname }}"
+- name: Print the hostnames in inventory
+  debug:
+    msg: "{{ inventory_hostname }}"
+  tags:
+    - just-this-task  
 
-  - name: Change the remote hostname using inventory name
-    ansible.builtin.hostname:
-      name: "{{ inventory_hostname }}"
+- name: Change the remote hostname using inventory name
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  tags:
+    - just-this-task  
 
-  - name: Here we are checking ansible_hostname (actual REMOTE host name from returned values)
-    debug:
-      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+- name: Here we are checking ansible_hostname (actual REMOTE host name from returned values)
+  debug:
+    msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+  tags:
+    - just-this-task  
 

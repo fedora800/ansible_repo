@@ -15,10 +15,8 @@
     backup: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
-      172.31.17.223     acg-k8-controlp1
-      172.31.31.123     acg-k8-controlp2
-      172.31.30.178     acg-k8-worker1
-      172.31.17.229     acg-k8-worker2
-      172.31.28.86      acg-k8-worker3
+      172.31.118.17    acg-control1
+      172.31.122.29    acg-worker1
+      172.31.116.24    acg-worker2
   tags:
-    - server-tasks-file-2
+    - hosts-append

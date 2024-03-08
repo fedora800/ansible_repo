@@ -1,13 +1,28 @@
 ---
+
+# ---- NOTES ----
+# if --check option passed to ansible-playbook, then register variables are not populated looks like
+# setting verbosity in here will have no affect unless we run ansible-playbook with the 1 of -v to -vvvv options.
+# facts must be gathered first before we use their variables
+
 - hosts: all
+  become: true
 
   tasks:
+
+  - name: Ensure facts are gathered
+    setup:
+    tags:
+      - local-facts
+
   - name: Print a simple statement when task runs against a remote host
     debug:
       msg: "--debug message 001--"
+    tags:
+      - just-this-task
 
   # ansible all -m setup will show all the facts
-  - name: Here we are checking and showing multiple ansible facts (from REMOTE host from returned values)
+  - name: Here we are checking and showing multiple ansible facts (from **REMOTE** host from returned values)
     debug:
       msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }} a-distrel={{ ansible_distribution_release }} {{ ansible_distribution_version }}
             a-cpucores={{ ansible_processor_vcpus }} a-nprocs={{ ansible_processor_nproc }}
@@ -16,25 +31,45 @@
             a-inventory={{ inventory_file }} "
 #      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something   # dictionary way
     tags:
-      - some-facts
+      - remote-facts
 
   - name: Get ansible facts as variables, filter them, and displaying them using a playbook
     debug:
 #      var: ansible_facts["cmdline"]
       var: ansible_facts["all_ipv6_addresses"]                         # list way
     tags:
-      - some-facts
+      - remote-facts
+
+  - name: Display important facts
+    debug:
+      var:
+        - ansible_os_family
+        - ansible_distribution
+        - ansible_default_ipv4
+        - ansible_hostname
+        - ansible_facts['ansible_os_family']
+        - ansible_facts['ansible_distribution']
+        - ansible_facts['ansible_default_ipv4']
+        - ansible_facts['ansible_hostname']
+    tags:
+      - local-facts
 
   - name: Here we are checking inventory_hostname (our LOCAL aliases from inventory file)
     debug:
       msg: "hostname is {{ inventory_hostname }}"
+    tags:
+      - local-facts
 
   - name: Display all variables/facts known for a host
     ansible.builtin.debug:
-      var: hostvars[inventory_hostname]
-      verbosity: 4
+#      var: hostvars[inventory_hostname]   # this will print 100s of variables for each host, so avoid and use like below
+        var:
+          - hostvars[inventory_hostname]['ansible_all_ipv4_addresses']
+#          - hostvars[inventory_hostname]['desired_variable_2']
+#          - hostvars[inventory_hostname]['ansible_default_ipv4']
+#      verbosity: 3                        # this will not work unless we do -vvv in ansible-playbook command line
     tags:
-      - variables
+      - local-facts
 
   - name: Printing variables that were defined in the task locally 
     vars:
@@ -129,8 +164,8 @@
     # grep -w because I don't want /swap matching /swapfile, for example
     ansible.builtin.shell: "/sbin/swapon -s"                            # should show no rows and return code of 0 if no swap
     register: reg_fstab_swap_count
-    tags:
-      - just-this-task
+#    tags:
+#      - just-this-task
  
   - name: Print some debug information
     vars:
@@ -157,12 +192,12 @@
  
     debug:
       msg: "{{ msg.split('\n') }}"
-    tags:
-      - just-this-task
+#    tags:
+#      - just-this-task
 
 
-------
-In the following playbook, we will define a variable called test and print it using two methods, the first is using the var option and the second is using msg.
+#------
+#In the following playbook, we will define a variable called test and print it using two methods, the first is using the var option and the second is using msg.
 
 - name: playbook
   vars:
@@ -174,7 +209,7 @@ In the following playbook, we will define a variable called test and print it us
     - name: dubug option 2
       debug:
         msg: "{{ test }}"
--------
+#-------
 
 # --------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------

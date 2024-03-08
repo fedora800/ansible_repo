@@ -1,20 +1,34 @@
 ---
 
-- hosts: all
-  become: true
+- name: Check /tmp freespace
+  shell: /usr/bin/df /tmp | awk '{print $4}' | tail -1
+  register: reg_tmp_space_free
+  tags:
+    - just-this-task  
 
-  tasks:
+- name: Print the register value of variable gathered from previous command
+  debug:
+#    var: reg_tmp_space_free          # this will print the whole object 
+    msg: "free space = {{ reg_tmp_space_free.stdout }}"
+  tags:
+    - just-this-task  
 
-  - name: Check /tmp freespace
-    shell: df /tmp | awk '{print $4}' | tail -1
-    register: reg_tmp_space_free
+- name: Compare the freespace against our requirements
+  # checks if the free space in /tmp is less than 3GB. If it is, the task fails and displays error message.
+  fail:
+    msg: /tmp does not have the minimum space required to continue (3Gb requested). 
+  when: reg_tmp_space_free.stdout|float is lt 3000000  # in Kb
+  #when: reg_tmp_space_free.stdout|float is lt 30000000   # 30GB, just to test failure
+  changed_when: false
+  register: tmp_space_check
+  tags:
+    - just-this-task  
 
-  - name: Print the variable value
-    debug:
-      msg: "free space = {{ reg_tmp_space_free.stdout }}"
+- name: Print a custom message if there's enough space
+  # when the previous task did not fail (
+  debug:
+    msg: "There's sufficient space in /tmp."
+#  when: tmp_space_check.failed
+  tags:
+    - just-this-task
 
-  - name: do the fail task
-    fail:
-      msg: /tmp does not have the minimum space required to continue (3Gb requested). 
-    #when: reg_tmp_space_free.stdout|float is lt 3000000
-    when: reg_tmp_space_free.stdout|float is lt 30000000   # 30GB

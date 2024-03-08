@@ -1,16 +1,36 @@
 ---
 # tasks file for server_configure
 
-- name: Import tasks from apt_update_and_upgrade.yml
-  ansible.builtin.import_tasks: apt_update_and_upgrade.yml
+- hosts: all
+  become: true
 
-- name: Import tasks from role server_configure - append_records_to_etc_hosts_file.yml
-  ansible.builtin.import_tasks: append_records_to_etc_hosts_file.yml
+  tasks:
+    - name: Print the hostnames in inventory
+      debug:
+        msg: "Printing hostname in inventory -> {{ inventory_hostname }}"
 
-- name: Import tasks from role server_configure - swap.yml
-  ansible.builtin.import_tasks: swap.yml
-  tags:
-    - just-this-task
+    - name: Import tasks from change_hostname.yml
+      include_tasks: 
+         file: change_hostname.yml
+#      tags:
+#        - just-this-task
+
+    - name: Import tasks from check_disk_space.yml
+      include_tasks: 
+         file: check_disk_space.yml
+      tags:
+        - just-this-task
+
+###- name: Import tasks from apt_update_and_upgrade.yml
+###  import_tasks: apt_update_and_upgrade.yml
+###
+###- name: Import tasks from role server_configure - append_records_to_etc_hosts_file.yml
+###  import_tasks: append_records_to_etc_hosts_file.yml
+###
+###- name: Import tasks from role server_configure - swap.yml
+###  import_tasks: swap.yml
+###
+
 
 # --- below todo ---
 #    - import_tasks: append_records_to_etc_hosts_file.yml

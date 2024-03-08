@@ -1,23 +1,27 @@
 ---
 
-- name: Check if swap is enabled				# TESTED-AND-WORKS
-  # grep -w because I don't want /swap matching /swapfile, for example
-  ansible.builtin.shell: "/sbin/swapon --show"                            # should show no rows and return code of 0 if no swap
-  register: reg_fstab_swap_count
-#  tags:
-#    - just-this-task
-
-- debug:							# TESTED-AND-WORKS
-    var: reg_fstab_swap_count.stdout
-#  tags:
-#    - just-this-task
-
-
-- name: Disable swap						# TESTED-AND-WORKS
+- hosts: all
   become: true
-  command: /sbin/swapoff -a
-#  tags:
-#    - just-this-task
+
+  tasks:
+  - name: Check if swap is enabled                # TESTED-AND-WORKS
+    # grep -w because I don't want /swap matching /swapfile, for example
+    ansible.builtin.shell: "/sbin/swapon --show"                            # should show no rows and return code of 0 if no swap
+    register: reg_fstab_swap_count
+    tags:
+      - swap-check
+  
+  - debug:                            # TESTED-AND-WORKS
+      var: reg_fstab_swap_count.stdout
+    tags:
+      - swap-check
+  
+  
+  - name: Disable swap                        # TESTED-AND-WORKS
+    become: true
+    command: /sbin/swapoff -a
+    tags:
+      - swap-disable
 
 #  
 #  - name: Ensure swap file doesn't exist (if configured)
@@ -46,7 +50,7 @@
 #
 #
 ##turn off swap and comment out /etc/fstab if there is any swap
-##e.g. - /dev/hda6   swap     swap   defaults        0	0
+##e.g. - /dev/hda6   swap     swap   defaults        0    0
 ##    or  free command shows ->
 ##Swap:          2047           5        2042
 ##$ grep -i --color swap /proc/meminfo

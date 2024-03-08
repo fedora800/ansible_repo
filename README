@@ -17,13 +17,26 @@ ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m ping -u ub
 ansible -i ~/git-projects/ansible_repo/inventories/staging acg-k8-controlp2 -m ping
 
 # run a command on all hosts
-ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m shell -a "hostnamectl" -u ubuntu                                                                                        
+$ ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m shell -a "hostnamectl" -u ubuntu                                                                                        
 
 # we can then run playbook like such 
 cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks
+$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging-acg ~/git-projects/ansible_repo/roles/server_configure/tasks/change_hostname.yml --ask-become-pass --check
 $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass --check
 $ ansible-playbook main.yml  --ask-become-pass
+
+# run only specific tasks from the tasks yaml file
+$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging-acg  ~/git-projects/ansible_repo/roles/server_configure/tasks/swap.yml --ask-become-pass --tags "check-swap,disable-swap" --check
 
 # run on specific group of hosts from inventory or even just 1 host
 $ ansible-playbook --limit=k8_nodes_worker --ask-become-pass ~/git-projects/ansible_repo/roles/server_configure/tasks/main.yml --tags=check_release
 $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --limit=acg-k8-controlp2 ~/git-projects/ansible_repo/roles/server_configure/tasks/docker.yml --ask-become-pass --tags=just-this-task --check
+
+
+import_tasks module is used to import a list of tasks from a file into the current playbook for subsequent execution.
+name of the imported file is specified directly without any other option. Most keywords, including loops and conditionals, only apply to the imported tasks, not to this statement itself. If you need any of those to apply, use ansible.builtin.include_tasks instead.
+
+
+In an Ansible playbook, the import_tasks statement should not be used at the play level. Instead, it's used within a task.
+If you want to import tasks from another file, you should use the include_tasks or import_tasks statements within a task
+
