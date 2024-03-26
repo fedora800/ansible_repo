@@ -65,3 +65,13 @@
 ## all the firewall changes
 #ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/kubernetes/tasks/all_firewall_changes.yml  --ask-become-pass 
 #--------------------------------------------------------------------------------
+
+# some playbooks to refer - 
+# https://github.com/DinmaMerciBoi/Jenkins-Terraform-Kubenetes-Ansible/tree/main/Kubernetes
+
+
+#--------------------------------------------------------------------------------
+
+
+
+
