@@ -63,3 +63,17 @@
 #     msg: "not enough RAM (should be atleast 2 GB)"
 #   when: ansible_memory_mb.real.total < 2048
 
+
+-- i did not check previously if selinux is disabled, which is a requirement
+run  getenforce (sudo apt install policycoreutils selinux-utils selinux-basics   if not there)
+output should be "Disabled"
+can also run   sestatus
+output should be "SELinux status:                 disabled"
+
+
+
+
+
+
+
+
