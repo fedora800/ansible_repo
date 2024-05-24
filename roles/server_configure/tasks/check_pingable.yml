@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: true
+  remote_user: cloud_user
+
+  tasks:
+    - name: Check if host is pingable via ansible # WORKING
+      ping:
+      tags:
+        - just-this-task
+
+    - name: Check SSH connectivity         # NOT-WORKING
+      block:
+        - raw: "ssh -o BatchMode=yes {{ inventory_hostname }} echo success"
+          ignore_errors: yes
+          register: sshcheck
+
+        - set_fact:
+            sshreachable: "{{ 'SSH SUCCESS' if sshcheck.rc == 0 else 'SSH FAILED' }}"
+
+        - debug:
+            msg: "SSH status for {{ inventory_hostname }}: {{ sshreachable }}"
+      tags:
+        - just-this-task
+

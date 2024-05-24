@@ -1,28 +1,37 @@
-
 ---
 
-# - name: Adding users - using with_items
-#   user:
-#     name: "{{ item }}"
-#     state: present
-#   with_items:
-#      - john
-#      - mike
-#      - andrew
+- hosts: all
+  become: true
 
- - name: Adding users - using loop
-   user:
-     name: '{{ item.name }}'
-     uid: '{{ item.uid }}'
-     state: present
+  tasks:
+    - name: Check if host is pingable via ansible                     # WORKING
+      ping:
+      tags:
+        - just-this-task
 
-   loop:
-     - name: roger
-       uid: 1020
-     - name: tom
-       uid: 1030
-     - name: winston
-       uid: 1040
+
+   # - name: Adding users - using with_items
+   #   user:
+   #     name: "{{ item }}"
+   #     state: present
+   #   with_items:
+   #      - john
+   #      - mike
+   #      - andrew
+
+    - name: Adding users - using loop
+      user:
+        name: '{{ item.name }}'
+        uid: '{{ item.uid }}'
+        state: present
+   
+      loop:
+        - name: roger
+          uid: 1020
+        - name: tom
+          uid: 1030
+        - name: winston
+          uid: 1040
 
 # - name: Adding users - using loop - json  (NOT WORKING YET)
 #   user:
@@ -36,39 +45,48 @@
 #       - { name: andrew , uid: 1040 }
 #     # this in JSON format is same as above
 
+    - name: Create the 'prod-support' user
+      user: name=prod-support group=supportteam append=yes state=present createhome=yes shell=/bin/bash
+      tags:
+        - just-this-task
 
---------------------------------------------------------------------------------
-to test
-
-    - name: create the 'ubuntu' user
-      user: name=ubuntu append=yes state=present createhome=yes shell=/bin/bash
-
-    - name: allow 'ubuntu' to have passwordless sudo
+    - name: allow 'prod-support' to have passwordless sudo
       lineinfile:
         dest: /etc/sudoers
         line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
         validate: 'visudo -cf %s'
-
+ 
     - name: set up authorized keys for the ubuntu user
     # Adds local public key (usually ~/.ssh/id_rsa.pub) to remote ubuntu user’s authorized key file so we can SSH into remote server as the ubuntu user.
       authorized_key: user=ubuntu key="{{item}}"
       with_file:
         - ~/.ssh/id_rsa.pub
 
-# Adding the user tomcat
-- name: add user "tomcat"
-  user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
-  become: True
-  become_method: sudo
+    # Adding the user tomcat
+    - name: add user "tomcat"
+      user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+      become: True
+      become_method: sudo
 
-# look at this url how to call from task and role etc - https://mahira-technology.medium.com/how-to-copy-ssh-key-to-remote-host-using-ansible-9b0fd00f3786
-# also check https://github.com/sadsfae/ansible-sshkeys
-# also https://poweradm.com/create-user-copy-ssh-key-ansible/
-- name: Copy SSh Key | copying shh key to remote host
-  authorized_key:
-     user: "<your_user>"
-     state: present
-     key: "{{ lookup('file', item) }}"
-  with_fileglob:
-  - id_ed25519.pub
-  become: true
+  # look at this url how to call from task and role etc - https://mahira-technology.medium.com/how-to-copy-ssh-key-to-remote-host-using-ansible-9b0fd00f3786
+  # also check https://github.com/sadsfae/ansible-sshkeys
+  # also https://poweradm.com/create-user-copy-ssh-key-ansible/
+    - name: Copy SSh Key - copying shh key to remote host
+      authorized_key:
+        user: "<your_user>"
+        state: present
+        key: "{{ lookup('file', item) }}"
+      with_fileglob:
+        - id_ed25519.pub
+      become: true
+
+
+
+# i have just taken this from another place
+# need to make it take a pre-defined variable of group name
+# creates or ensures that the group user XXXX  exists
+- name : create group user tomcat
+  group:
+    name: tomcat
+    state: present
+

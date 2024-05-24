@@ -1,5 +1,35 @@
 ---
 
+- name: Install aptitude so that we can use apt to install packages
+  apt:
+    name: aptitude
+    state: latest
+    update_cache: true
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400             # run "update_cache=yes" only if the last one was more than these many seconds ago (1 day)
+
+- name: Update apt and install required system packages
+  apt:
+    pkg:
+      - curl
+      - vim
+      - git
+      - ufw
+    state: present                      # IMP - to analyse if we want latest package or whatever is available
+    #state: latest
+    update_cache: true
+  become: true                                 # most of the packages need to be installed as root, so this will be needed
+
+
+--------------------------------------------------------------------------------
+
+
+---
+
 # need to make sure first (using apt list pkg -a) if that version is available to install on this OS
 #- name: apt install and/or ensure php8.1 is installed - specific version
 #  apt:
@@ -12,7 +42,7 @@
 # lot of this taken from -     https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt-module-tutorial-examples/
 
 
-- name: apt install multiple packages
+- name: apt install multiple packages before which update apt cache in the same task
   apt:
     name:
       - php8.1
@@ -28,6 +58,14 @@
     state: present
     update_cache: true
   become: true
+
+
+- name: Set apt to disallow any version upgrades on kubelet, kubeadm, kubectl
+# could not find any apt option to hold yet so using the shell cmd
+  ansible.builtin.shell:
+    cmd: "sudo apt-mark hold kubelet kubeadm kubectl"
+  become: true
+
 
 - name: install php7.2 from a .deb on the internet
   apt:

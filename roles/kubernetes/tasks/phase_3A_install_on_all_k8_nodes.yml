@@ -1,89 +1,244 @@
 ---
 
-Method chosen is "Installing Kubeadm" - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# i found this link quite late, so never used it, but must use the tasks in it when i get time - https://github.com/torgeirl/kubernetes-playbooks/blob/main/playbooks/kube-dependencies.yml
 
-For above, we first need to install the container runtime on each node so we can run the pods - https://kubernetes.io/docs/setup/production-environment/container-runtimes/
-So, do the steps below
+# all of these tasks worked for me, but i ran them piecemeal buy taking one at a time in a different file and running them
 
-### Forwarding IPv4 and letting iptables see bridged traffic ###
 
-# Execute the below mentioned instructions to enable 2 kernel modules in the current running environment
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-# also configure them to load on boot
-sudo modprobe overlay
-sudo modprobe br_netfilter
+# Method chosen is "Installing Kubeadm" - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# **** I am installing kubernetes  1.28 here on Ubuntu 22.04 ****
 
+# Section 1 - Install and configure prerequisites (mostly network related) required for kubernetes
+# Section 2 - Install containerd and modify configuration file
+
+- hosts: all
+  become: true
+
+  tasks:
+ 
+#--------------------------------------------------------------------------------
+# Section 1 - Install and configure prerequisites (mostly network related) required for kubernetes
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+# not very well mentioned/some missing! in k8 doc so referenced various other blog articles showing kubernetes install
+
+# This step is completely missing from the k8 documentation !
+# Add to the module loader configuration for 2 kernel modules to be automatically enabled/loaded on every boot
+# overlay module provides overlay filesystem support, which Kubernetes uses for its pod network abstraction.
+# br_netfilter allows the iptables packet filtering tool to access bridged network traffic flowing to the cluster
+#  cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+#  overlay
+#  br_netfilter
+#  EOF
+# Also enable them for the current running environment/kernel, so that we dont need to reboot right now
+#  sudo modprobe overlay
+#  sudo modprobe br_netfilter
+
+
+  - name: Section 1 - Add 2 kernel modules to startup config
+    become: true
+    blockinfile:
+      path: /etc/modules-load.d/k8s.conf
+      create: true
+      state: present
+      backup: yes 
+      block: |
+        overlay
+        br_netfilter
+#    tags:
+#      - just-this-task
+
+
+  - name: Section 1 - Enable these 2 kernel modules for current env
+    become: true
+    shell: |
+      sudo modprobe overlay
+      sudo modprobe br_netfilter
+    tags:
+      - just-this-task
+
+# Enable IPv4 packet forwarding 
+# Again, k8 doc is missing the 2 bridge lines !
 # sysctl params required by setup, put in file so params persist across reboots
-cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
-EOF
+#  cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+#  net.bridge.bridge-nf-call-iptables  = 1
+#  net.bridge.bridge-nf-call-ip6tables = 1
+#  net.ipv4.ip_forward                 = 1
+#  EOF
+
+  - name: Section 1 - Enable IPv4 packet forwarding
+    become: true
+    blockinfile:
+      path: /etc/sysctl.d/k8s.conf
+      create: true
+      state: present
+      backup: yes 
+      block: |
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.ipv4.ip_forward                 = 1
+#    tags:
+#      - just-this-task
+
 
 # Apply sysctl params to the current running environment without needing to reboot 
-sudo sysctl --system
+#  sudo sysctl --system
 
-#Verify that the br_netfilter, overlay modules are loaded by running below instructions:
-lsmod | grep br_netfilter
-lsmod | grep overlay
+  - name: Section 1 - Apply sysctl params to the current running environment
+    become: true
+    shell: |
+      sudo sysctl --system
+    tags:
+      - just-this-task
 
-Verify that the net.bridge.bridge-nf-call-iptables, net.bridge.bridge-nf-call-ip6tables, net.ipv4.ip_forward system variables are set to 1 in your sysctl config by running below instruction:
 
-sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+# Verify that the br_netfilter, overlay modules are loaded by running below instructions:
+# lsmod | egrep "Module|overlay|br_netfilter"
+# Module                  Size  Used by
+# overlay               200704  0
+# br_netfilter           32768  0
 
---------------------------------------------------------------------------------
-# now install containerd
+# Verify that the net.bridge.bridge-nf-call-iptables, net.bridge.bridge-nf-call-ip6tables, net.ipv4.ip_forward system variables are set to 1 in your sysctl config by running below instruction:
+# sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+# output - 
+# net.bridge.bridge-nf-call-iptables = 1
+# net.bridge.bridge-nf-call-ip6tables = 1
+# net.ipv4.ip_forward = 1
+
+# After this, the k8 doc becomes really crappy and no direction, so next step in most blogs is to do containerd install
+
+
+#--------------------------------------------------------------------------------
+# Section 2 - Install containerd and modify configuration file
 # to check which version of containerd is supported on my kubernetes version - https://containerd.io/releases/
-# i think i will have to follow docker documentation but not install docker but only containerd
-https://docs.docker.com/engine/install/ubuntu/
+# Kubernetes v1.28 requires containerd v1.7.0+ version
+# containerd official doc is unfriendly - https://github.com/containerd/containerd/blob/main/docs/getting-started.md
+#   their way is to give the tar.gz file to install, but then also send to other links to install runc and CNI plugins which are needed for containerd
+#   eg https://www.howtoforge.com/how-to-install-containerd-container-runtime-on-ubuntu-22-04/
+# so again used other blogs are sources
+# note the we need a slight reference to docker here, as we are choosing to download and install the containerd.io apt pkg on ubuntu, and docker.com maintains it.
 
-# Update the apt package index and install packages to allow apt to use a repository over HTTPS:
-sudo apt update
-sudo apt install ca-certificates curl gnupg
 
-#Add Docker’s official GPG key
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
+# install dependency packages
+#  sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+  - name: Section 2 - install dependancy packages
+    apt:
+      pkg:
+        - curl
+        - gnupg2
+        - software-properties-common
+        - apt-transport-https
+        - ca-certificates
+      state: present
+      update_cache: true
+    become: true
+    tags:
+      - just-this-task
 
-# Use the following command to set up the repository
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-#Update the apt package index
-sudo apt update
+# fetch the gpg key that signs Docker's Ubuntu packages, pipe the key through gpg --dearmor to unpack it and save it to the created keyring directory.
+#  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
 
-#now do not install anything else from docker but only containerd
-sudo apt install -y containerd.io
-(apt show containerd | grep -i version   ---> Version: 1.7.2-0ubuntu1~22.04.1)
+  - name: Section 2 - Download Docker official gpg (old format) file
+    become: true
+    get_url:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      #dest: /etc/apt/keyrings/docker.asc
+      dest: /tmp/docker.pgpkey.oldformat
+      mode: 0755
+
+  - name: Section 2 - Convert the downloaded PGP key using gpg dearmor and save file in OpenPGP Public Key Version 4 format in keyrings dir
+    become: true
+    ansible.builtin.shell: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg < /tmp/docker.pgpkey.oldformat; file /tmp/docker.pgpkey.oldformat /etc/apt/keyrings/docker.gpg"
+    register: reg_file_cmd_output
+
+  - name: Print output of above file cmd output on the key files
+    debug:
+    #  msg: "{{ reg_system_uptime }}"              # shows all fields
+      msg: "{{ reg_file_cmd_output.stdout }}"       # only the stdout
+
+# using apt command, add the correct version into a file in /etc/apt/sources.list.d which in turn will allow apt that searches this directory to find the package that needs installing.
+#  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+  - name: Section 2 - Add the requisite docker repository in apt sources directory
+    become: true
+    apt_repository:
+      # *** i am HARD CODING for now ***
+      # this will change depending on architecture and versions etc
+      repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable"
+      state: present
+      filename: docker        # the .list extension gets appended, so /etc/apt/sources.list.d/docker.list file gets created with the above line as content
+      update_cache: yes
+      mode: 0644
+
+# now resync the apt package index files so that it knows about any packages added/modified in the sources.list.d files
+#  sudo apt update
+# install containerd
+#  sudo apt install -y containerd.io
+#  (apt show containerd | grep -i version   ---> Version: 1.7.2-0ubuntu1~22.04.1)
+# we should now see containerd service running
+
+  - name: Section 2 - Install containerd.io
+    apt:
+      name: containerd.io
+      state: present
+      update_cache: true
+    become: true
 
 # now back to kubernetes doc, section "Configuring the systemd cgroup driver" and refer to the "Note"
 #throw away the install created config file /etc/containerd/config.toml and create one from default and restart the daemon
-sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
-sudo containerd config default | sudo tee /etc/containerd/config.toml
-# Configuring the systemd cgroup driver for runc
-sudo vim /etc/containerd/config.toml
-#and search for pattern -> plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options
-and change the value of this to this -> SystemdCgroup = true
-sudo systemctl restart containerd
-sudo systemctl enable containerd
+#  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
+#  sudo containerd config default | sudo tee /etc/containerd/config.toml
+# note - i did not find any config.toml so mv was not required for me
 
-# verify
-sudo systemctl status containerd
-containerd --version                 # containerd containerd.io 1.6.28 ae07eda36dd25f8a1b98dfbf587313b99c0190bb
+  - name: Section 2 - Discard the default config.toml config file
+    ansible.builtin.command:
+      cmd: mv /etc/containerd/config.toml /tmp/config.toml
+    become: true
 
---------------------------------------------------------------------------------
+  - name: Section 2 - Generate a new config.toml config file in /etc/containerd directory
+    ansible.builtin.shell: "sudo containerd config default | sudo tee /etc/containerd/config.toml"
+    become: true
 
--name  add config to k8.conf
--name  do the sudo modprob
--name  persist sysctl params across reboots
--name Apply sysctl params without reboot
+# Configuring containerd to use the systemd cgroup driver for runc and restart containerd
+# search for pattern -> plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options and change the value of this to this -> SystemdCgroup = true
+#  sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+#  sudo systemctl restart containerd
+#  sudo systemctl enable containerd
 
+  - name: Section 2 - Apply changes to the config.toml config file
+    ansible.builtin.replace:
+      path: /etc/containerd/config.toml
+      regexp: 'SystemdCgroup = false'
+      replace: 'SystemdCgroup = true'
+    become: true
 
+  - name: Section 2 - Restart containerd and enable it 
+    ansible.builtin.shell: 
+      cmd: "sudo systemctl restart containerd; sleep 2; sudo systemctl enable containerd"
+    become: true
+
+# verify that containerd is up and print the version 
+#  sudo systemctl status containerd
+#  containerd --version                 # containerd containerd.io 1.6.28 ae07eda36dd25f8a1b98dfbf587313b99c0190bb
+
+  - name: Section 2 - Check containerd service status 
+    ansible.builtin.shell: 
+      cmd: "systemctl status containerd | egrep 'Loaded|Active'"
+    register: reg_output
+    become: true
+
+  - name: Section 2 - Print output register data
+    debug:
+      msg: "{{ reg_output.stdout }}"
+
+  - name: Section 2 - Check containerd version
+    ansible.builtin.shell: 
+      cmd: "containerd --version"
+    register: reg_output
+    become: true
+
+  - name: Section 2 - Print output register data
+    debug:
+      msg: "{{ reg_output.stdout }}"
 
 

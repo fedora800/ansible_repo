@@ -66,6 +66,8 @@
     # https://www.jeffgeerling.com/blog/2022/aptkey-deprecated-debianubuntu-how-fix-ansible
     # https://stackoverflow.com/questions/71585303/how-can-i-manage-keyring-files-in-trusted-gpg-d-with-ansible-playbook-since-apt
     # https://fabianlee.org/2023/04/17/ansible-adding-custom-apt-repository-with-signed-by-gpg-key/
+    # cloud_user@acg-control1:~$ file /tmp/docker.pgpkey.oldformat 
+    # /tmp/docker.pgpkey.oldformat: PGP public key block Public-Key (old)
     - name: Set up the repository/ Add official GPG key - Download docker "PGP public key block Public-Key (old)" key file using get_url module 
       become: true
       get_url:
@@ -94,7 +96,7 @@
         # this will change depending on architecture and versions etc
         repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
         state: present
-        filename: docker        # the .list extension gets appended
+        filename: docker        # the .list extension gets appended, so /etc/apt/sources.list.d/docker.list file gets created with the above line as content
         update_cache: yes
         mode: 0644
 

@@ -1,0 +1,104 @@
+---
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/replace_module.html
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+# https://www.howtoforge.com/ansible-guide-manage-files-using-ansible/
+
+- name: copy from local host to remote hosts (here example tomcat service file)
+  copy:
+    src: ../files/tomcat.service
+    dest: /etc/systemd/system/
+    mode: 0755
+
+# Copying the tomcat template file to the destination node
+- name: Copy tomcat service file
+  template:
+    src: templates/tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+  when: ansible_service_mgr == "systems"
+
+
+- name: Backup/Make a copy of a file on the remote server
+  ansible.builtin.copy:
+    src: /etc/hosts
+    dest: /etc/hosts.{{ ansible_date_time.iso8601 }}
+    remote_src: yes
+
+- name: Move a file into a different directory on the remote server
+  ansible.builtin.command:
+    cmd: mv /etc/containerd/config.toml /tmp/config.toml
+  become: true
+
+- name: create .kube directory
+  become: yes
+  become_user: ubuntu
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: Change ownership of tomcat directory
+  file:
+    path: /opt/tomcat10
+    owner: tomcat
+    group: tomcat
+    mode: "u+rwx,g+rx,o=rx"
+    recurse: yes
+    state: directory
+
+- name: Change file ownership, group and permissions
+  ansible.builtin.file:
+    path: /etc/foo.conf
+    owner: foo
+    group: foo
+    mode: '0644'
+
+
+- name: Pattern match and replace - this example is a simple one without any regex
+  ansible.builtin.replace:
+    path: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+  become: true
+
+
+# some other untested article for ref - https://www.middlewareinventory.com/blog/ansible-update-etc-hosts-file-across-all-hosts/
+# i had to make it an independant playbook for now by add hosts, become, tasks etc so that i am able to run this independantly first thing when configuring the hosts
+# $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --ask-become-pass append_records_to_etc_hosts_file.yml 
+# appends a block of hostname and ip records to bottom of /etc/hosts file
+- name: Append Hostname and IP records block to /etc/hosts file		# WORKS
+  become: true                                                          # as a non-root user, we want to become root and create this root owned file
+  blockinfile:
+    path: /etc/hosts                                                    # the full path and name of the file to be modified
+    create: true                                                        # will create this file if does not exist
+    state: present                                                      # should the block be present or not, here its set to be present
+    insertafter: EOF                                                    # if EOF, insert at EOF
+    backup: yes                                                         # will backup old one if any changes and add datetimestamp suffix to filename
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"                            # BEGIN and END will be put in place of mark by default and the block will be enclosed in these 2 marker lines
+    block: |                                                            # text to insert between the marker lines. note there will be no leading spaces. 
+      172.31.124.136   acg-control1 
+      172.31.126.146   acg-worker1
+      172.31.116.248   acg-worker2
+#  tags:
+#    - just-this-task
+
+
+# Append lines to a file - line by line - but have not tested yet
+- name: configure sysctl params for Kubernetes
+  lineinfile:
+    path: /etc/sysctl.d/99-kubernetes-cri.conf
+    line: "{{ item }}"
+  with_items:
+    - 'net.bridge.bridge-nf-call-iptables  = 1'
+    - 'net.ipv4.ip_forward                 = 1'
+    - 'net.bridge.bridge-nf-call-ip6tables = 1'
+
+
+
+
+
+
+
+
+

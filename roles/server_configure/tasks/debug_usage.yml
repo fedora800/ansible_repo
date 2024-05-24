@@ -82,14 +82,23 @@
       - variables
 
 
-  - name: Print system uptime using shell and register modules
-    shell: uptime -p
-    register: reg_system_uptime
+  - name: Run a shell command and capture output data into a register (using shell and register modules)
+    ansible.builtin.shell:
+      cmd: "hostnamectl"
+    register: reg_output
 
-  - name: Print uptime of managed node using values saved by register module
+  - name: Print all the info stored in the register using the debug module
     debug:
-    #  msg: "{{ reg_system_uptime }}"              # shows all fields
+      var: reg_output                              # specified the variable to be printed
+      # entire content of reg_output will be printed including stdout, stderr and rc (return code) and metadata like changed, failed etc etc
+
       msg: "{{ reg_system_uptime.stdout }}"       # only the stdout
+
+  - name: Print only the stdout attribute of the register
+    debug:
+    #  msg: "{{ reg_output }}"              # shows all fields
+      msg: "{{ reg_output.stdout }}"
+
 
   - name: Run free memory check command
     command: free -h

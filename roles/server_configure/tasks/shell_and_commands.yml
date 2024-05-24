@@ -1,0 +1,29 @@
+---
+
+# if we are using | commands, we should use ansible.builtin.shell instead of ansible.builtin.cmd   ********
+- name: Run a command and pipe output to another command
+  ansible.builtin.shell: "sudo containerd config default | sudo tee /etc/containerd/config.toml"
+  become: true
+
+# just to test the shell module to run remote command and check output
+- name: check OS information 
+  shell: 
+    cmd: lsb_release -a
+  register: reg_os_info     # output is saved in this variable
+  tags:
+    - check_release
+
+- name: print the variable
+  debug:
+    msg: "var = {{ reg_os_info.stdout_lines }} "
+  tags:
+    - check_release
+
+ 
+- name: Run multiple commands using shell and sudo
+  become: true
+  shell: |
+    sudo modprobe overlay
+    sudo modprobe br_netfilter
+  tags:
+    - just-this-task

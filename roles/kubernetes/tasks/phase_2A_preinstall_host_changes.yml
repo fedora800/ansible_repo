@@ -1,0 +1,38 @@
+---
+
+#--------------------------------------------------------------------------------
+# make the below changes on *BOTH* master and worker nodes before we start deploying kubernetes packages
+#--------------------------------------------------------------------------------
+
+- hosts: all
+  become: true
+
+  tasks:
+
+   # giving task name makes it seem in the output as if 2 seperate tasks are being done, 
+   # so avoid for now.
+   # it still does it but not that explicit
+   - name: Append Host and IP records to /etc/hosts file (Calling tasks file from another role)   # WORKS
+     ansible.builtin.include_role:
+       name: server_configure
+      # use only this task, name should match the yml file
+       tasks_from: append_records_to_etc_hosts_file
+#     tags:
+#       - just-this-task
+  
+   - name: Change hostname on each node to pre-defined value (Calling tasks file from another role)   # WORKS
+     ansible.builtin.include_role:
+       name: server_configure
+      # use only this task, name should match the yml file
+       tasks_from: change_hostname
+#     tags:
+#       - just-this-task
+
+
+   - name: Disable Swap (Calling tasks file from another role)   # WORKS
+     ansible.builtin.include_role:
+       name: server_configure
+      # use only this task, name should match the yml file
+       tasks_from: swap
+     tags:
+       - just-this-task
