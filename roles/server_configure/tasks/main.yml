@@ -1,25 +1,24 @@
 ---
 # tasks file for server_configure
+# though this is a main.yml file, it is still a TASKS file and not a playbook file
+# so cannot contain play-level keywords like hosts, vars, roles, or tasks.
 
-- hosts: all
-  become: true
 
-  tasks:
-    - name: Print the hostnames in inventory
-      debug:
-        msg: "Printing hostname in inventory -> {{ inventory_hostname }}"
+- name: Print the hostnames in inventory
+  debug:
+    msg: "Printing hostname in inventory -> {{ inventory_hostname }}"
 
-    - name: Import tasks from change_hostname.yml
-      include_tasks: 
-         file: change_hostname.yml
+- name: Import tasks from change_hostname.yml
+  include_tasks: 
+     file: change_hostname.yml
 #      tags:
 #        - just-this-task
 
-    - name: Import tasks from check_disk_space.yml
-      include_tasks: 
-         file: check_disk_space.yml
-      tags:
-        - just-this-task
+- name: Import tasks from check_disk_space.yml
+  include_tasks: 
+     file: check_disk_space.yml
+  tags:
+    - just-this-task
 
 ###- name: Import tasks from apt_update_and_upgrade.yml
 ###  import_tasks: apt_update_and_upgrade.yml

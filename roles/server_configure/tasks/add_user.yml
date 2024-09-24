@@ -65,6 +65,7 @@
     # Adding the user tomcat
     - name: add user "tomcat"
       user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+      password: "{{ 'K21Academy' | password_hash('sha512') }}"
       become: True
       become_method: sudo
 

@@ -10,9 +10,9 @@
     src: ../files/tomcat.service
     dest: /etc/systemd/system/
     mode: 0755
+    backup: yes
 
-# Copying the tomcat template file to the destination node
-- name: Copy tomcat service file
+- name: Copy tomcat service file from LOCAL host to the REMOTE node
   template:
     src: templates/tomcat.service.j2
     dest: /etc/systemd/system/tomcat.service
@@ -27,8 +27,17 @@
 
 - name: Move a file into a different directory on the remote server
   ansible.builtin.command:
+    src: /etc/hosts
+    dest: /etc/hosts.{{ ansible_date_time.iso8601 }}
+    remote_src: yes
     cmd: mv /etc/containerd/config.toml /tmp/config.toml
   become: true
+
+- name: Copy file on REMOTE host into another directory
+  ansible.builtin.copy:
+    src: /etc/hosts
+    dest: /tmp/hosts.copy
+    remote_src: yes
 
 - name: create .kube directory
   become: yes
@@ -36,6 +45,8 @@
   file:
     path: $HOME/.kube
     state: directory
+    owner: ubuntu
+    group: ubuntu
     mode: 0755
 
 - name: Change ownership of tomcat directory
@@ -54,6 +65,19 @@
     group: foo
     mode: '0644'
 
+- name: Create Symlink of file
+  file:
+    src: /etc/nginx/sites-available/vhost
+    dest: /etc/nginx/sites-enabled/vhost
+    owner: root
+    group: root
+    state: link
+
+- name: Download file from REMOTE node to LOCAL host (ansible node) directory
+  become: yes
+  fetch:
+    src: /etc/nginx/nginx.conf
+    dest: /home/cloud_user/backup/
 
 - name: Pattern match and replace - this example is a simple one without any regex
   ansible.builtin.replace:
@@ -73,6 +97,7 @@
     path: /etc/hosts                                                    # the full path and name of the file to be modified
     create: true                                                        # will create this file if does not exist
     state: present                                                      # should the block be present or not, here its set to be present
+    #insertbefore: host1.example.com                                    # will insert before 1st occurrence of this line
     insertafter: EOF                                                    # if EOF, insert at EOF
     backup: yes                                                         # will backup old one if any changes and add datetimestamp suffix to filename
     marker: "# {mark} ANSIBLE MANAGED BLOCK"                            # BEGIN and END will be put in place of mark by default and the block will be enclosed in these 2 marker lines
@@ -84,7 +109,7 @@
 #    - just-this-task
 
 
-# Append lines to a file - line by line - but have not tested yet
+# Append line to a file - line by line but a group of them- but have not tested yet
 - name: configure sysctl params for Kubernetes
   lineinfile:
     path: /etc/sysctl.d/99-kubernetes-cri.conf
@@ -95,10 +120,38 @@
     - 'net.bridge.bridge-nf-call-ip6tables = 1'
 
 
+- name: Delete text block surrounded by markers on REMOTE node
+  blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    content: ""
+    backup: yes
+
+- name: Replace Pattern in a file with string and also using placeholders
+  replace:
+    path: /etc/hosts
+    regexp: '(\s+)node\.example\.com(\s+.*)?$'
+    replace: '\1box.testnet.org\2'
+    backup: yes
+
+- name: Remove a line (that matches our regexp) from the file on REMOTE node
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: absent
+    regexp: '^PasswordAuthentication'
 
 
+- name: Uncomment configuration
+  replace:
+    path: /etc/nginx/nginx.conf
+    regexp: '#(\s+)server_tokens'
+    replace: 'server_tokens'
+    backup: yes
 
-
-
-
+- name: Comment Line configuration
+  replace:
+    path: /etc/nginx/nginx.conf
+    regexp: '(\s+)gzip on'
+    replace: '\n\t#gzip on'
+    backup: yes
 

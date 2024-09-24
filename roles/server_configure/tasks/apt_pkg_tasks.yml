@@ -1,18 +1,35 @@
 ---
 
-- name: Install aptitude so that we can use apt to install packages
+# There is no built-in Ansible variable that directly gives you the filename of the current task YAML file.
+# So we need to manually set a variable at the top of each YAML file to represent its name.
+- set_fact:
+    tasks_file_name: "apt_pkg_tasks.yml"
+
+
+- name: "{{ tasks_file_name }} | Install aptitude so that we can use apt to install packages"
   apt:
     name: aptitude
     state: latest
     update_cache: true
+  when: v_install_aptitude | default(false)
 
-- name: Update and upgrade apt packages
+
+- name: "{{ tasks_file_name }} | Update apt packages"
+  apt:
+    update_cache: yes
+    cache_valid_time: 86400             # run "update_cache=yes" only if the last one was more than these many seconds ago (1 day)
+  when: v_update_apt_packages | default(false)   # will run this task only when the caller has set this variable to true
+
+
+- name: "{{ tasks_file_name }} | Update and upgrade apt packages"
   apt:
     upgrade: yes
     update_cache: yes
-    cache_valid_time: 86400             # run "update_cache=yes" only if the last one was more than these many seconds ago (1 day)
+    cache_valid_time: 86400 
+  when: v_update_and_upgrade_apt_pkgs | default(false)
 
-- name: Update apt and install required system packages
+
+- name: "{{ tasks_file_name }} | Update apt and install required system packages"
   apt:
     pkg:
       - curl
@@ -23,141 +40,166 @@
     #state: latest
     update_cache: true
   become: true                                 # most of the packages need to be installed as root, so this will be needed
+  when: v_install_specific_apt_pkgs_in_loop | default(false)
 
 
---------------------------------------------------------------------------------
 
 
----
-
-# need to make sure first (using apt list pkg -a) if that version is available to install on this OS
-#- name: apt install and/or ensure php8.1 is installed - specific version
-#  apt:
-#    name: php8.1
-#    #name: php8.1i=8.1+92ubuntu1
-#    state: present
-#    update_cache: true
-#  become: true
-
-# lot of this taken from -     https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt-module-tutorial-examples/
 
 
-- name: apt install multiple packages before which update apt cache in the same task
-  apt:
-    name:
-      - php8.1
-      - vim 
-    state: present
-    update_cache: true
-  become: true
-
-- name: ensure specific version of php7.2 is installed
-# another example - sudo apt-get install -y kubelet=1.26.1-00
-  apt:
-    name: php7.2=7.2.10-0ubuntu0.18.04.1
-    state: present
-    update_cache: true
-  become: true
 
 
-- name: Set apt to disallow any version upgrades on kubelet, kubeadm, kubectl
-# could not find any apt option to hold yet so using the shell cmd
-  ansible.builtin.shell:
-    cmd: "sudo apt-mark hold kubelet kubeadm kubectl"
-  become: true
+# --------------------------------------------------------------------------------
 
-
-- name: install php7.2 from a .deb on the internet
-  apt:
-    deb: http://security.ubuntu.com/ubuntu/pool/main/p/php7.2/php7.2_7.2.10-0ubuntu0.18.04.1_all.deb
-    state: present
-  become: true
-  register: apt_output
-  when: ansible_os_family == 'Debian'
-
-- name: ensure nginx is uninstalled/not installed and autoremove unneeded deps
-  apt:
-    name: nginx
-    state: absent
-    autoremove: true
-  become: true
-
-- name: ensure latest versions of php7.2 and php7.2-mysql are installed / update packages to their latest versions
-  apt:
-    name: 
-      - php7.2
-      - php7.2-mysql
-    state: latest
-    update_cache: true
-  become: true
-
-- name: update all packages installed on the system
-  apt:
-    name: "*"
-    state: latest
-    force_apt_get: true
-    update_cache: true
-  become: true
-
-# how to downgrade
-# downgrade a package by first fully removing the package, then installing a specific previous version of the package
-- name: ensure php7.2 is not installed
-  apt:
-    name: php7.2
-    state: absent
-    autoremove: true
-  become: true
-
-- name: ensure older version of php7.2 is installed
-  apt:
-    name: php7.2=7.2.3-1ubuntu1
-    state: present
-    update_cache: true
-  become: true
-
-- name: clean up the apt cache
-  apt:
-    autoclean: true
-  become: true
-
-- name: automatically remove any unused dependencies
-  apt:
-    autoremove: true
-  become: true
-
-# to capture apt module output
-- name: ensure php7.2 is installed
-  apt:
-    name: php7.2
-    state: present
-    update_cache: true
-  become: true
-  register: apt_output
-
-- debug: var=apt_output
-
-#- name: install redis on Debian based distros 
-#  apt:
-#    name: redis-server
-#    state: present
-#    update_cache: true
-#  become: true
-#  when: ansible_os_family == 'Debian'
-#
-#- name: install redis on RHEL based distros
-#  yum:
-#    name: "{{ item }}"
-#    state: present
-#    update_cache: true
-#  become: true
-#  loop:
-#    - epel-release
-#    - redis
-#  when: ansible_os_family == 'RedHat'
-#
-
-# check https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04  for apt_key and apt_repository tasks and others
-# https://github.com/netson/ansible-gpg-key
-# https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt_key-module-tutorial-examples/
-
-
+# 
+# 
+# # need to make sure first (using apt list pkg -a) if that version is available to install on this OS
+# #- name: apt install and/or ensure php8.1 is installed - specific version
+# #  apt:
+# #    name: php8.1
+# #    #name: php8.1i=8.1+92ubuntu1
+# #    state: present
+# #    update_cache: true
+# #  become: true
+# 
+# # lot of this taken from -     https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt-module-tutorial-examples/
+# 
+# 
+# - name: apt install multiple packages before which update apt cache in the same task
+#   apt:
+#     name:
+#       - php8.1
+#       - vim 
+#     state: present
+#     update_cache: true
+#   become: true
+# 
+# - name: ensure specific version of php7.2 is installed
+# # another example - sudo apt-get install -y kubelet=1.26.1-00
+#   apt:
+#     name: php7.2=7.2.10-0ubuntu0.18.04.1
+#     state: present
+#     update_cache: true
+#   become: true
+# 
+# 
+# - name: Set apt to disallow any version upgrades on kubelet, kubeadm, kubectl
+# # could not find any apt option to hold yet so using the shell cmd
+#   ansible.builtin.shell:
+#     cmd: "sudo apt-mark hold kubelet kubeadm kubectl"
+#   become: true
+# 
+# 
+# - name: install php7.2 from a .deb on the internet
+#   apt:
+#     deb: http://security.ubuntu.com/ubuntu/pool/main/p/php7.2/php7.2_7.2.10-0ubuntu0.18.04.1_all.deb
+#     state: present
+#   become: true
+#   register: apt_output
+#   when: ansible_os_family == 'Debian'
+# 
+# - name: ensure nginx is uninstalled/not installed and autoremove unneeded deps
+#   apt:
+#     name: nginx
+#     state: absent
+#     autoremove: true
+#   become: true
+# 
+# - name: ensure latest versions of php7.2 and php7.2-mysql are installed / update packages to their latest versions
+#   apt:
+#     name: 
+#       - php7.2
+#       - php7.2-mysql
+#     state: latest
+#     update_cache: true
+#   become: true
+# 
+# - name: update all packages installed on the system
+#   apt:
+#     name: "*"
+#     state: latest
+#     force_apt_get: true
+#     update_cache: true
+#   become: true
+# 
+# # how to downgrade
+# # downgrade a package by first fully removing the package, then installing a specific previous version of the package
+# - name: ensure php7.2 is not installed
+#   apt:
+#     name: php7.2
+#     state: absent
+#     autoremove: true
+#   become: true
+# 
+# - name: ensure older version of php7.2 is installed
+#   apt:
+#     name: php7.2=7.2.3-1ubuntu1
+#     state: present
+#     update_cache: true
+#   become: true
+# 
+# - name: clean up the apt cache
+#   apt:
+#     autoclean: true
+#   become: true
+# 
+# - name: automatically remove any unused dependencies
+#   apt:
+#     autoremove: true
+#   become: true
+# 
+# # to capture apt module output
+# - name: ensure php7.2 is installed
+#   apt:
+#     name: php7.2
+#     state: present
+#     update_cache: true
+#   become: true
+#   register: apt_output
+# 
+# - debug: var=apt_output
+# 
+# 
+# - name: install nginx only if a variable exists
+#   apt:
+#     name: nginx
+#     state: present
+#     update_cache: true
+#   become: true
+#   when: "install_nginx | default(false)"
+# # to invoke this from another file - 
+# # Include tasks from server_configure to install OpenJDK if needed
+# #- name: Include task to install OpenJDK
+# #  include_tasks: ../../server_configure/tasks/install_pkgs_with_apt.yml
+# #  vars:
+# #    install_nginx: true
+# 
+# 
+# 
+# 
+# 
+# #- name: install redis on Debian based distros 
+# #  apt:
+# #    name: redis-server
+# #    state: present
+# #    update_cache: true
+# #  become: true
+# #  when: ansible_os_family == 'Debian'
+# #
+# #- name: install redis on RHEL based distros
+# #  yum:
+# #    name: "{{ item }}"
+# #    state: present
+# #    update_cache: true
+# #  become: true
+# #  loop:
+# #    - epel-release
+# #    - redis
+# #  when: ansible_os_family == 'RedHat'
+# #
+# 
+# # check https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04  for apt_key and apt_repository tasks and others
+# # https://github.com/netson/ansible-gpg-key
+# # https://www.toptechskills.com/ansible-tutorials-courses/ansible-apt_key-module-tutorial-examples/
+# 
+# 
