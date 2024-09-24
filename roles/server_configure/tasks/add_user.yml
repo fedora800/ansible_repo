@@ -19,6 +19,8 @@
    #      - mike
    #      - andrew
 
+
+
     - name: Adding users - using loop
       user:
         name: '{{ item.name }}'
@@ -50,12 +52,45 @@
       tags:
         - just-this-task
 
-    - name: allow 'prod-support' to have passwordless sudo
+    - name: Allow specific user 'prod-support' to have passwordless sudo
       lineinfile:
         dest: /etc/sudoers
         line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
-        validate: 'visudo -cf %s'
- 
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Create a new regular user with sudo privileges
+      user:
+        name: "{{ created_username }}"
+        state: present
+        groups: sudo
+        append: true
+        create_home: true
+
+    - name: Allow jenkins user to run sudo docker without needing password (passwordless)
+      lineinfile:
+        path: /etc/sudoers
+        state: present         # if it doesn't find a line with this pattern, it will add the line.
+        regexp: '^jenkins'               
+        line: 'jenkins ALL=(ALL) NOPASSWD: /usr/bin/docker'
+        validate: '/usr/sbin/visudo -cf %s'
+
+   
+    # users who have been added to the sudo group will now be able to run sudo commands without password
+    # visudo checks the file for syntax errors to prevent the sudo configuration from breaking, which could lock you out of root access.
+    - name: Enable all sudo group users to run sudo without needing password (passwordless)
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: '/usr/sbin/visudo -cf %s'
+    # above regex will match and change the below setting, which was set to sudo group users are able to run sudo commands but NEED the password to be input
+    ## Allow members of group sudo to execute any command
+    #%sudo   ALL=(ALL:ALL) ALL
+    # Risk: Allowing passwordless sudo access (NOPASSWD) for all commands might be a security risk, as it gives users elevated privileges without requiring them to authenticate.
+    # Best Practice: For security, it's better to restrict passwordless sudo access to specific commands rather than allowing all commands. eg - 
+    #%sudo ALL=(ALL) NOPASSWD: /usr/bin/systemctl
+
     - name: set up authorized keys for the ubuntu user
     # Adds local public key (usually ~/.ssh/id_rsa.pub) to remote ubuntu user’s authorized key file so we can SSH into remote server as the ubuntu user.
       authorized_key: user=ubuntu key="{{item}}"
@@ -68,6 +103,22 @@
       password: "{{ 'K21Academy' | password_hash('sha512') }}"
       become: True
       become_method: sudo
+
+    # name: tomcat
+    # # generated using - $ sudo apt install -y whois ; mkpasswd --method=sha512crypt Password1# 
+    # password: '$6$LBHLTvnwY5OtNskb$7CuNLXFoavB8yQQjN54m54YlL36s5y8E3DnSRAuWe05xbNDbHFNiEiqzBUs/z3fl8moAOjoM9AQuN6XsRXt8u1'
+    # #comment: "Tomcat nologin user"   # sets description of the user account
+    # groups: tomcat              # default = empty
+    # #append: yes                # default = yes
+    #                             # If true, add the user to the groups specified in groups.
+    #                             # If false, user will only be added to the groups specified in groups, removing them from all other groups.
+    # state: present
+    # #shell: /bin/bash            # default = /bin/bash
+    # #shell: /sbin/login         # for a nologin user
+    # #shell: /bin/false         # to understand diff between nologin and false
+    # create_home: true           # default = true
+    # home: /opt/tomcat           # default = /home/<username>      
+
 
   # look at this url how to call from task and role etc - https://mahira-technology.medium.com/how-to-copy-ssh-key-to-remote-host-using-ansible-9b0fd00f3786
   # also check https://github.com/sadsfae/ansible-sshkeys
@@ -90,4 +141,14 @@
   group:
     name: tomcat
     state: present
+
+# DANGEROUS ! as can render host inaccessible of not tested properly prior to disabling
+- name: Disable password authentication for root
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin prohibit-password'
+
+
 

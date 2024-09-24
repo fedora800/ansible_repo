@@ -19,6 +19,9 @@ ansible -i ~/git-projects/ansible_repo/inventories/staging acg-k8-controlp2 -m p
 # run a command on all hosts
 $ ansible -i ~/git-projects/ansible_repo/inventories/staging-oci all -m shell -a "hostnamectl" -u ubuntu                                                                                        
 
+# Provide the remote host (-l) rhost-1 and logon as (-u) root and (-k) allow it to ask for password. this is usually done the first time of setup.
+$ ansible-playbook playbook.yml -l rhost-1 -u root -k
+
 # we can then run playbook like such 
 cloud_user@acg-k8-controlp1:~/git-projects/ansible_repo/roles/server_configure/tasks
 $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging-acg ~/git-projects/ansible_repo/roles/server_configure/tasks/change_hostname.yml --ask-become-pass --check
