@@ -1,0 +1,16 @@
+---
+
+- name: Playbook to install Jenkins
+  hosts: acg-control1
+  become: true
+
+  vars:
+    v_playbook_name: "jenkins_playbook.yml"
+    v_install_openjdk: true  # This variable is used to control task execution in included tasks
+    v_update_apt_packages: true
+
+  tasks:
+    - name: "{{ v_playbook_name }} | Call tasks in Jenkins role"
+      include_role:
+        name: jenkins
+

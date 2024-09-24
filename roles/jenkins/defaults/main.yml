@@ -1,0 +1,5 @@
+---
+# defaults file for jenkins
+
+# NOTE: these values can be overridden by defining in vars/main.yml or even in the calling playbook
+v_jenkins_version: 2.462.1 

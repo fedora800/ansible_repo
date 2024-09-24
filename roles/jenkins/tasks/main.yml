@@ -1,0 +1,52 @@
+---
+# tasks file for jenkins
+# NOT a playbook
+
+  # prerequisite is java so selectively running that specific task from this role by using a variable in caller script
+- name: Call tasks from server_configure/install_pkgs_with_apt.yml file 
+  include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/install_pkgs_with_apt.yml
+
+  # sudo wget -O /usr/share/keyrings/jenkins-keyring.asc  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+  # fetch the gpg key that signs Jenkins's Ubuntu packages and save it to the created keyring directory.
+- name: Download Jenkins official key (old format) asc file
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+    mode: 0644
+
+
+  # echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+  # using apt command, add the correct version into a file in /etc/apt/sources.list.d which in turn will allow apt that searches this directory to find the package that needs installing.
+- name: Add the requisite Jenkins repository in apt sources directory list file
+  ansible.builtin.apt_repository:
+    # *** i am HARD CODING for now ***
+    # this will change depending on architecture and versions etc
+    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    filename: jenkins        # the .list extension gets appended, so /etc/apt/sources.list.d/jenkins.list file gets created with the above line as content
+    update_cache: yes
+    mode: 0644
+
+
+- name: Call the <Update apt packages> task 
+  include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/apt_pkg_tasks.yml
+  tags:
+    - update_apt  # This ensures only the task with this tag is run
+
+
+## the update_apt variable DID NOT WORK. it starting doing ALL the tasks from top to bottom. ** TODO **
+
+## next step is to do install jenkins #####
+
+- name: "Install Jenkins version {{ v_jenkins_version }}"
+  ansible.builtin.apt:
+    name: jenkins={{ v_jenkins_version }}
+    state: present
+
+
+
+
+
+
+
+
