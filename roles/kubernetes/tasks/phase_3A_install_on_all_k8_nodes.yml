@@ -116,7 +116,7 @@
 #   eg https://www.howtoforge.com/how-to-install-containerd-container-runtime-on-ubuntu-22-04/
 # so again used other blogs are sources
 # note the we need a slight reference to docker here, as we are choosing to download and install the containerd.io apt pkg on ubuntu, and docker.com maintains it.
-
+# NOTE - containerd (container runtime engine) is NOT A PART of kubernetes. kubernetes interacts with it using CRI (Container Runtime Interface) via integration with kubelet on a node. 
 
 # install dependency packages
 #  sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates

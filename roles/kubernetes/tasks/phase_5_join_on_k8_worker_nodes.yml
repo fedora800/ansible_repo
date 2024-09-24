@@ -5,23 +5,9 @@
 #
 # --------------------------------------------------------------------------------
 
-
-- hosts: k8s_nodes_control
-  become: yes
-  gather_facts: false
-  tasks:
-    - name: get join command
-      shell: kubeadm token create --print-join-command
-      register: join_command_raw
-
-    - name: set join command
-      set_fact:
-        join_command: "{{ join_command_raw.stdout_lines[0] }}"
-
 - hosts: k8s_nodes_worker
-  become: true
+  become: yes
   #gather_facts: false
-
   tasks:
 
     - name: get join command
@@ -32,10 +18,6 @@
       set_fact:
         join_command: "{{ join_command_raw.stdout_lines[0] }}"
 
-
-- hosts: workers
-  become: yes
-  tasks:
     - name: TCP port 6443 on master is reachable from worker
       wait_for: "host={{ hostvars['k8s-master-1']['ansible_default_ipv4']['address'] }} port=6443 timeout=1"
 
@@ -144,6 +126,12 @@ Kubernetes control plane is running at https://172.31.124.136:6443
 CoreDNS is running at https://172.31.124.136:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+# check listening on control-plane
+sudo ss -tulpn | egrep "10250|6443|2379|2380|10259|10257"
+
+# check listening on worker nodes
+sudo ss -tulpn | egrep "10250"
 
 # --------------------------------------------------------------------------------
 

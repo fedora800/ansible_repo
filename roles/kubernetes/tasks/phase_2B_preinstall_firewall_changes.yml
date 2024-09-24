@@ -5,16 +5,17 @@
 
 # https://kubernetes.io/docs/reference/networking/ports-and-protocols/
 # on all nodes
-#sudo ufw allow 10250/tcp comment "k8 kubelet API"    
+#sudo ufw allow 10250/tcp comment "k8s kubelet API"    
 # on control plane nodes
-#sudo ufw allow 6443/tcp comment "k8 API server"
-#sudo ufw allow 2379/tcp comment "k8 etcd server client API"
-#sudo ufw allow 2380/tcp comment "k8 etcd server client API"
-#sudo ufw allow 10259/tcp comment "k8 kube-scheduler"        
-#sudo ufw allow 10257/tcp comment "k8 kube-controller-manager"   
+#sudo ufw allow 6443/tcp comment "k8s API server"
+#sudo ufw allow 2379/tcp comment "k8s etcd server client API"
+#sudo ufw allow 2380/tcp comment "k8s etcd server client API"
+#sudo ufw allow 10259/tcp comment "k8s kube-scheduler"        
+#sudo ufw allow 10257/tcp comment "k8s kube-controller-manager"   
 # on worker nodes
-#sudo ufw allow 10256/tcp comment "k8 kube-proxy"
-#sudo ufw allow 30000:32767/tcp comment "k8 NodePort Services"
+# note - we need to first decide if we are going to allow pods on control-pane node, if yes, we will need to run below on that node too
+#sudo ufw allow 10256/tcp comment "k8s kube-proxy"
+#sudo ufw allow 30000:32767/tcp comment "k8s NodePort Services"
 #
 # note - ufw on ubuntu 22.04 atleast on ACLOUDGURU image i see is installed and enabled and active by default, so did not need to do any ansible ufw install
 
@@ -26,27 +27,28 @@
 #
 #https://admantium.com/blog/kube11_k8s_with_kubeadm_tutorial/
 #https://www.fosstechnix.com/how-to-install-kubernetes-cluster-on-ubuntu/
-#
+# https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-20-04
+# https://github.com/geerlingguy/ansible-role-kubernetes/blob/master/defaults/main.yml
 
   tasks:                                                                                     # WORKED   (all of these are good)
   # -------------------- all nodes --------------------
-  - name: Control Pane and Worker Nodes - Allow 10250 for k8 kubelet API
+  - name: Control Pane and Worker Nodes - Allow 10250 for k8s kubelet API
     community.general.ufw:
       rule: allow
       proto: tcp
       direction: in
       port: '10250'
-      comment: k8 kubelet API server
+      comment: k8s kubelet API server
     when: "'k8_all_nodes_private_ips' in group_names"
   
   # -------------------- control nodes only -------------------- 
-  - name: Control Pane Only - Allow 6443 for k8 API server
+  - name: Control Pane Only - Allow 6443 for k8s API server
     community.general.ufw:
       rule: allow
       proto: tcp
       direction: in
       port: '6443'
-      comment: k8 API server
+      comment: k8s API server
     when: "'k8_nodes_control' in group_names"
   
   - name: Control Pane Only - Allow 2379-2380 for etcd server client API
@@ -55,29 +57,30 @@
       proto: tcp
       direction: in
       port: 2379:2380
-      comment: k8 etcd server client API
+      comment: k8s etcd server client API
     when: "'k8_nodes_control' in group_names"
   
-  - name: Control Pane Only - Allow 10259 for k8 kube-scheduler
+  - name: Control Pane Only - Allow 10259 for k8s kube-scheduler
     community.general.ufw:
       rule: allow
       proto: tcp
       direction: in
       port: '10259'
-      comment: k8 kube-scheduler
+      comment: k8s kube-scheduler
     when: "'k8_nodes_control' in group_names"
   
-  - name: Control Pane Only - Allow 10257 for k8 kube-controller-manager
+  - name: Control Pane Only - Allow 10257 for k8s kube-controller-manager
     community.general.ufw:
       rule: allow
       proto: tcp
       direction: in
       port: '10257'
-      comment: k8 kube-controller-manager
+      comment: k8s kube-controller-manager
     when: "'k8_nodes_control' in group_names"
   
   # -------------------- worker nodes only -------------------- 
-  - name: Worker Nodes Only - Allow 10256 for k8 kube-proxy
+  # note - we need to first decide if we are going to allow pods on control-pane node, if yes, we will need to run below on that node too
+  - name: Worker Nodes Only - Allow 10256 for k8s kube-proxy
     community.general.ufw:
       rule: allow
       proto: tcp
@@ -85,13 +88,13 @@
       port: '10256'
     when: "'k8_nodes_worker' in group_names"
   
-  - name: Worker Nodes Only - Allow 30000-32767 for k8 NodePort Services
+  - name: Worker Nodes Only - Allow 30000-32767 for k8s NodePort Services
     community.general.ufw:
       rule: allow
       proto: tcp
       direction: in
       port: 30000:32767
-      comment: k8 NodePort Services
+      comment: k8s NodePort Services
     when: "'k8_nodes_worker' in group_names"
 
 
@@ -104,4 +107,4 @@
 # https://stackoverflow.com/questions/70849989/kube-apiserver-docker-shutting-down-got-signal-terminated/74695838#74695838
 # https://www.vnoob.com/2022/12/kubectl-6443-connection-refused/
 # i backed up and went to /etc/containerd/config.toml around line 125 (only 1 reference for SystemdCgroup) and changed SystemdCgroup = true and bounced containerd
-# i see that it was also clearly mentioned in k8 docs itself on https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd so i wasted time not following that instruction
+# i see that it was also clearly mentioned in k8s docs itself on https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd so i wasted time not following that instruction

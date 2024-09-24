@@ -1,12 +1,6 @@
 ---
 # tasks file for kubernetes
 
-# i need to understand properly if docker is ever needed for kubernetes, i can make it use containerd only i think - 
-# $ kubectl get nodes -o wide
-# NAME               STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
-# acg-k8-controlp1   Ready    control-plane   36m   v1.26.0   172.31.104.228   <none>        Ubuntu 22.04.2 LTS   5.19.0-1024-aws   containerd://1.6.12
-
-
 #---
 #
 # 70 - ansible.builtin.include_role:
