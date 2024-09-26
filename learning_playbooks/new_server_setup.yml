@@ -1,0 +1,16 @@
+- hosts: all
+  become: true
+  
+  tasks:
+    - name: Print the hostnames in inventory
+      debug:
+        msg: "{{ inventory_hostname }}"
+
+    - import_tasks: ../roles/server_configure/tasks/update_upgrade_apt.yml
+      name: "{{ tasks_file_name }} | Update and upgrade apt packages"
+
+    - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
+      name: Check /tmp freespace
+
+    - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
+      name: Print the register value of variable gathered from previous command
