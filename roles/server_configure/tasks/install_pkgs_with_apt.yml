@@ -1,0 +1,16 @@
+---
+
+- set_fact:
+    tasks_file_name: "install_pkgs_with_apt.yml"
+
+# this should contain all the packages of interest that we would like to be installed using apt on ubuntu machines
+
+- name: "{{ tasks_file_name }} | install openjdk version 21"
+  apt:
+    name: openjdk-21-jdk
+    state: present
+    update_cache: true
+  become: true
+  when: "v_install_openjdk | default(false)"
+
+

@@ -1,0 +1,317 @@
+
+
+vscode extensions - 
+YAML
+Ansible
+
+need to use ANSIBLE VAULT ******
+
+
+
+Install fail2ban to help prevent brute force attacks
+
+--------------------------------------------------------------------------------
+Our first major step is setting up the right environment for a new non-root user, and then creating that user. Here's the first component:
+
+- name: Ensure wheel group is present
+  group:
+    name: wheel
+    state: present
+
+--------------------------------------------------------------------------------
+- name: Ensure wheel group has sudo privileges
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "^%wheel"
+    line: "%wheel ALL=(ALL:ALL) ALL"
+    validate: "/usr/sbin/visudo -cf %s"
+
+
+--------------------------------------------------------------------------------
+
+
+We want to make sure the sudo package is installed as well.
+
+- name: Install the sudo package
+  package:
+    name: sudo
+    state: latest
+
+
+--------------------------------------------------------------------------------
+
+- name: Create the non-root user account
+  user:
+    name: ""
+    password: ""
+    shell: /bin/bash
+    update_password: on_create
+    groups: wheel
+    append: yes
+
+--------------------------------------------------------------------------------
+
+This tasks sets up the user with the hashed password you created, and sets the shell to /bin/bash. Because we're putting this user in the wheel group, we'll be able to use sudo straightaway.
+
+
+--------------------------------------------------------------------------------
+
+- name: Upgrading all packages (Ubuntu/Debian)
+  apt:
+    upgrade: dist
+  when: ansible_os_family == "Debian" or ansible_os_family == "Ubuntu"
+
+--------------------------------------------------------------------------------
+
+We can also install additional packages:
+
+- name: Install a few more packages
+  package:
+    name: "{{item}}"
+    state: installed
+  with_items:
+   - vim
+   - htop
+
+
+--------------------------------------------------------------------------------
+
+Beyond that, we want to use Ansible to make some configuration changes to the SSH daemon that will harden it against some basic attacks. It's not foolproof, but it's a big step above the defaults.
+
+- name: Add local public key for key-based SSH authentication
+  authorized_key:
+    user: ""
+    state: present
+    key: ""
+
+This command looks for an SSH key on the *local machine* at the location specified in the vars section in provision.yml and then copies it to the server. Much easier than using ssh-copy-id, eh?
+
+--------------------------------------------------------------------------------
+
+Next, let's make SSH a little more secure.
+
+- name: Harden sshd configuration
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{item.regexp}}"
+    line: "{{item.line}}"
+    state: present
+  with_items:
+    - regexp: "^#?PermitRootLogin"
+      line: "PermitRootLogin no"
+    - regexp: "^^#?PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    - regexp: "^#?AllowAgentForwarding"
+      line: "AllowAgentForwarding no"
+    - regexp: "^#?AllowTcpForwarding"
+      line: "AllowTcpForwarding no"
+    - regexp: "^#?MaxAuthTries"
+      line: "MaxAuthTries 2"
+    - regexp: "^#?MaxSessions"
+      line: "MaxSessions 2"
+    - regexp: "^#?TCPKeepAlive"
+      line: "TCPKeepAlive no"
+    - regexp: "^#?UseDNS"
+      line: "UseDNS no"
+    - regexp: "^#?AllowAgentForwarding"
+      line: "AllowAgentForwarding no"
+
+The lineinfile and regexp should look familiar to you at this point—as with making changes to /etc/sudoers, we're looking at /etc/ssh/sshd_config and replacing a number of existing lines with new ones. If the lines don't currently exist, Ansible will create new lines at the bottom of the file containing our revisions. The ^#? regex allows us to replace lines whether or not they're commented out, and thus begin with a #.
+
+
+--------------------------------------------------------------------------------
+
+- name: Install the iptables package
+  package:
+    name: iptables
+    state: latest
+
+
+--------------------------------------------------------------------------------
+
+Now, let's get to the juicy bits—allowing certain types of traffic, on certain ports, that are usually wanted on a VPS.
+
+- name: Firewall rule - allow port ping traffic
+  iptables:
+    chain: INPUT
+    jump: ACCEPT
+    protocol: icmp
+
+- name: Firewall rule - allow port 22/SSH traffic
+  iptables:
+    chain: INPUT
+    destination_port: 22
+    jump: ACCEPT
+    protocol: tcp
+
+- name: Firewall rule - allow port 80/HTTP traffic
+  iptables:
+    chain: INPUT
+    destination_port: 80
+    jump: ACCEPT
+    protocol: tcp
+
+- name: Firewall rule - allow port 443/HTTPS traffic
+  iptables:
+    chain: INPUT
+    destination_port: 443
+    jump: ACCEPT
+    protocol: tcp
+
+The first example here, using the icmp protocol, allows you to ping your server as usual—if you don't allow icmp traffic, your pings will be dropped or rejected.
+
+For the other three items, we're simply allowing certain destination ports based on popular services that people usually want enabled on their VPS: port 22, for SSH traffic; port 80, for HTTP traffic; and port 433, for HTTPS traffic. Without these exceptions, you'll find that many VPS applications won't work properly.
+
+
+--------------------------------------------------------------------------------
+
+
+Next up, we want to quickly set up fail2ban using Ansible to help block attempted brute force attacks on our VPS.
+
+- name: Install the fail2ban package
+  package:
+    name: fail2ban
+    state: latest
+
+- name: Override some basic fail2ban configurations
+  copy:
+    src: ../templates/jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: 0644
+
+
+--------------------------------------------------------------------------------
+
+What is the jail.local file? Well, create a new file under fail2ban/templates/jail.local.j2 and paste in the following:
+
+[DEFAULT]
+# Ban hosts for one hour:
+bantime = 3600
+
+# Override /etc/fail2ban/jail.d/00-firewalld.conf:
+banaction = iptables-multiport
+
+[sshd]
+enabled = true
+maxretry = 3
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+Note: This playbook is meant to run on a bare CentOS 7 server. If you want to run this on an Ubuntu/Debian server, simply change the yum line to apt.
+
+---
+- hosts: ssdnodes
+  remote_user: root
+
+  vars_prompt:
+
+    - name: "user_name"
+      prompt: "Enter a name for the new user"
+      private: no
+      confirm: yes
+
+    - name: "user_password"
+      prompt: "Enter a password for the new user"
+      private: yes
+      encrypt: "sha512_crypt"
+      confirm: yes
+      salt_size: 7
+
+  tasks:
+
+    - name: Check to make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Install the 'sudo' package
+      yum:
+        name: sudo
+        state: latest
+
+    - name: Create the non-root user
+      user:
+        name: ""
+        password: ""
+        shell: "/bin/bash"
+        groups: "wheel"
+
+    - name: Add local public key for key-based SSH authentication
+      authorized_key:
+        user: ""
+        key: "{{item}}"
+      with_file:
+        - ~/.ssh/id_rsa.pub
+
+    - name: Restrict root SSH logins
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: Restrict SSH logins to keys only
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Restart sshd
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: sshd
+
+Before we go into how you run this command, let’s walk through what some of these lines do in practice.
+
+- hosts: ssdnodes
+  remote_user: root
+
+These two lines dictate which host group we’re going to work with—in this case, the ssdnodes group we created earlier—and specify that we’re using the root login (just this once) to complete our steps.
+
+vars_prompt:
+
+  - name: "user_name"
+    prompt: "Enter a name for the new user"
+    private: no
+    confirm: yes
+
+  - name: "user_password"
+    prompt: "Enter a password for the new user"
+    private: yes
+    encrypt: "sha512_crypt"
+    confirm: yes
+    salt_size: 7
+
+These two vars_prompt commands will ask for user input to define which username and password they would like to associate with the newly-created account.
+
+Beyond this, each nested block of script that begins with - name: defines a new task that Ansible will complete in sequential order, once the previous task has completed successfully. Failed tasks will cause the entire playbook to stop running.
+
+If you follow along with each of the tasks, you can see that we’re installing sudo, creating our new user, adding your SSH public key to the server, and putting some basic restrictions on sshd before restarting it.
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

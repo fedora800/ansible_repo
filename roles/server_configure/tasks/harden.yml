@@ -1,0 +1,18 @@
+---
+
+- set_fact:
+    tasks_file_name: "harden.yml"
+
+
+- name: "{{ tasks_file_name }} | Upload fail2ban configuration"
+  #The simplest way to configure fail2ban with Ansible is to upload jail configuration file (jail.local) using the template task
+  template:
+  src: jail.local
+  dest: /etc/fail2ban/jail.local- name: restart fail2ban
+  service:
+  name: fail2ban
+   state: restarted
+# Service restart is required for the changes to take effect.
+
+
+

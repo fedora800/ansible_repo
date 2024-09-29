@@ -1,16 +1,34 @@
 - hosts: all
+  gather_facts: yes
   become: true
+  vars:
+    configure_new_server: true
   
   tasks:
-    - name: Print the hostnames in inventory
+    - name: Ensure log_filename is set
       debug:
-        msg: "{{ inventory_hostname }}"
+        var: log_filename
+      tags:
+        - print_action
 
-    - import_tasks: ../roles/server_configure/tasks/update_upgrade_apt.yml
+    - name: Set log filename with timestamp
+      set_fact:
+        log_filename: "{{ playbook_dir }}/logs/ansible_playbook_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.log"
+      tags:
+        - print_action
+
+#     - name: Print the hostnames in inventory
+#       debug:
+#         msg: "{{ inventory_hostname }}"
+# 
+    - import_tasks: ../roles/server_configure/tasks/apt_pkg_tasks.yml
       name: "{{ tasks_file_name }} | Update and upgrade apt packages"
+# 
+#     - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
+#       name: Check /tmp freespace
+# 
+#     - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
+#       name: Print the register value of variable gathered from previous command
 
-    - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
-      name: Check /tmp freespace
 
-    - import_tasks: ../roles/server_configure/tasks/check_disk_space.yml
-      name: Print the register value of variable gathered from previous command
+

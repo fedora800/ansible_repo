@@ -35,6 +35,8 @@ $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging-acg  ~/git
 $ ansible-playbook --limit=k8_nodes_worker --ask-become-pass ~/git-projects/ansible_repo/roles/server_configure/tasks/main.yml --tags=check_release
 $ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging --limit=acg-k8-controlp2 ~/git-projects/ansible_repo/roles/server_configure/tasks/docker.yml --ask-become-pass --tags=just-this-task --check
 
+# use own log file
+ANSIBLE_LOG_PATH="~/temp/ansible_playbook_$(date +'%Y%m%d_%H%M%S').log" ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging-acg  ~/git-projects/ansible_repo/learning_playbooks/new_server_setup.yml --ask-become-pass --check
 
 import_tasks module is used to import a list of tasks from a file into the current playbook for subsequent execution.
 name of the imported file is specified directly without any other option. Most keywords, including loops and conditionals, only apply to the imported tasks, not to this statement itself. If you need any of those to apply, use ansible.builtin.include_tasks instead.

@@ -11,14 +11,33 @@
     name: aptitude
     state: latest
     update_cache: true
-  when: v_install_aptitude | default(false)
+  # --------------------- AND condition ------------------
+  # when: 
+    # - means its an AND condition on 2 seperate conditions
+    # and task will run only if BOTH evaluate to true
+    # | operator applies filters to variables or expressions
+    # bool filter below converts the value of configure_new_server to a boolean.
+    # and if it's undefined, bool will treat as false
+    #- configure_new_server | bool
+    # if variable is not defined, it uses the default value of false.
+    #- v_apt_aptitude | default(false)
+  # --------------------- OR condition ------------------
+    # the or operator signifies the OR condition
+    # if configure_new_server is true, task will run without looking at v_apt_aptitude
+  #when: (configure_new_server | default(false) | bool) or (v_apt_aptitude | default(false) | bool)                    # dmesg causes problems, and i dont need aptitude that much
+  when: v_apt_update | default(false)   # will run this task only when the caller has set this variable to true
+  tags: 
+    - print_action
+
 
 
 - name: "{{ tasks_file_name }} | Update apt packages"
   apt:
     update_cache: yes
     cache_valid_time: 86400             # run "update_cache=yes" only if the last one was more than these many seconds ago (1 day)
-  when: v_update_apt_packages | default(false)   # will run this task only when the caller has set this variable to true
+  when: v_apt_update | default(false)   # will run this task only when the caller has set this variable to true
+  tags: 
+    - print_action
 
 
 - name: "{{ tasks_file_name }} | Update and upgrade apt packages"
@@ -26,7 +45,9 @@
     upgrade: yes
     update_cache: yes
     cache_valid_time: 86400 
-  when: v_update_and_upgrade_apt_pkgs | default(false)
+  when: (configure_new_server | default(false) | bool) or (v_apt_update_upgrade | default(false) | bool)
+  tags: 
+    - print_action
 
 
 - name: "{{ tasks_file_name }} | Update apt and install required system packages"
@@ -40,7 +61,9 @@
     #state: latest
     update_cache: true
   become: true                                 # most of the packages need to be installed as root, so this will be needed
-  when: v_install_specific_apt_pkgs_in_loop | default(false)
+  when: v_apt_install_pkgs | default(false)   # will run this task only when the caller has set this variable to true
+  tags: 
+    - print_action
 
 
 
