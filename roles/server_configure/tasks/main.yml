@@ -5,17 +5,17 @@
 
 
 - name: Print the hostnames in inventory
-  debug:
+  ansible.builtin.debug:
     msg: "Printing hostname in inventory -> {{ inventory_hostname }}"
 
 - name: Import tasks from change_hostname.yml
-  include_tasks: 
+  ansible.builtin.include_tasks: 
      file: change_hostname.yml
 #      tags:
 #        - just-this-task
 
 - name: Import tasks from check_disk_space.yml
-  include_tasks: 
+  ansible.builtin.include_tasks: 
      file: check_disk_space.yml
   tags:
     - just-this-task

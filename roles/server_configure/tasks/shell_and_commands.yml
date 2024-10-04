@@ -14,7 +14,7 @@
     - check_release
 
 - name: print the variable
-  debug:
+  ansible.builtin.debug:
     msg: "var = {{ reg_os_info.stdout_lines }} "
   tags:
     - check_release

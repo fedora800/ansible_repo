@@ -1,47 +1,92 @@
 ---
 
+# ---------- 01 Local facts related ------------------------------
+# ---------- 02 Remote facts related ------------------------------
+# ---------- 03 Managing and Printing variables ------------------------------
+
 # ---- NOTES ----
 # if --check option passed to ansible-playbook, then register variables are not populated looks like
 # setting verbosity in here will have no affect unless we run ansible-playbook with the 1 of -v to -vvvv options.
+# debug: messages will NOT APPEAR unless we do a -vv level verbosity
 # facts must be gathered first before we use their variables
+# msg and var CANNOT be used in the same DEBUG task
 
-- hosts: all
-  become: true
+- set_fact:
+    tasks_file_name: "debug_usage.yml"
 
-  tasks:
+- block:
 
-  - name: Ensure facts are gathered
+  # ---------- 01 Local facts related ------------------------------
+  - name: "{{ tasks_file_name }} | Ensure LOCAL facts are gathered"
     setup:
+    when: v_du_todo | default(false)   
+#    tags:
+#      - t01-local-facts
+  
+  
+  - name: "{{ tasks_file_name }} | Display LOCAL gathered facts"
+    ansible.builtin.debug:
+      msg: "Distribution: {{ ansible_distribution }}, Version: {{ ansible_distribution_version }}, Hostname: {{ ansible_hostname }}"
+    when: v_du_todo | default(false)   
     tags:
-      - local-facts
-
-  - name: Print a simple statement when task runs against a remote host
-    debug:
-      msg: "--debug message 001--"
-    tags:
-      - just-this-task
-
+      - t01-local-facts
+      - k8_install_phase_2A-append_to_hosts_file
+  
+  
+  # ---------- 02 Remote facts related ------------------------------
+  
   # ansible all -m setup will show all the facts
-  - name: Here we are checking and showing multiple ansible facts (from **REMOTE** host from returned values)
-    debug:
+  - name: "{{ tasks_file_name }} | Here we are checking and showing multiple ansible facts (from **REMOTE** host from returned values)"                          # UNTESTED
+    ansible.builtin.debug:
       msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }} a-distrel={{ ansible_distribution_release }} {{ ansible_distribution_version }}
             a-cpucores={{ ansible_processor_vcpus }} a-nprocs={{ ansible_processor_nproc }}
             a-type={{ ansible_product_name }} a-total-mem={{ ansible_memory_mb.real.total }} 
             a-cfgfile={{ ansible_config_file }} a-user={{ ansible_user_id }} a-playbookdir={{ playbook_dir }}
             a-inventory={{ inventory_file }} "
-#      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something   # dictionary way
+  #      msg: "{{ ansible_facts.distribution }} | {{ ansible_facts.all_ipv4_addresses }} {{ ansible_facts.memtotal_mb }}"    # this is with format ansible_facts.something   # dictionary way
+    when: v_du_todo | default(false)   
     tags:
-      - remote-facts
-
-  - name: Get ansible facts as variables, filter them, and displaying them using a playbook
-    debug:
-#      var: ansible_facts["cmdline"]
+      - t02-remote-facts
+  
+  - name: "{{ tasks_file_name }} | Get ansible facts as variables, filter them, and displaying them using a playbook                      "          # UNTESTED
+    ansible.builtin.debug:
+  #      var: ansible_facts["cmdline"]
       var: ansible_facts["all_ipv6_addresses"]                         # list way
+    when: v_du_todo | default(false)   
     tags:
-      - remote-facts
-
-  - name: Display important facts
-    debug:
+      - t02-remote-facts
+  
+  
+  
+  
+  # ---------- 03 Managing and Printing variables ------------------------------
+  - name: "{{ tasks_file_name }} | Print a simple statement when task runs against a remote host"
+    ansible.builtin.debug:
+      msg: "--debug message 001--"
+    when: v_du_todo | default(false)   
+  
+  
+  - name: "{{ tasks_file_name }} | Run a command and register the output                      "          # UNTESTED
+    command: echo "Hello, World!"
+    register: reg_output
+    when: v_du_todo | default(false)   
+  
+  # This will print the entire contents of reg_output, including stdout, stderr, rc, etc.
+  - name: "{{ tasks_file_name }} | Print all the info stored in the register                      "          # UNTESTED
+    ansible.builtin.debug:
+      var: reg_output
+    when: v_du_todo | default(false)   
+  
+  # This will print only the stdout content of reg_output.
+  - name: "{{ tasks_file_name }} | Print only stdout from the registered output                      "          # UNTESTED
+    ansible.builtin.debug:
+      msg: "{{ reg_output.stdout }}"
+    when: v_du_todo | default(false)   
+  
+  
+  
+  - name: "{{ tasks_file_name }} | Display important facts                      "          # UNTESTED
+    ansible.builtin.debug:
       var:
         - ansible_os_family
         - ansible_distribution
@@ -51,207 +96,192 @@
         - ansible_facts['ansible_distribution']
         - ansible_facts['ansible_default_ipv4']
         - ansible_facts['ansible_hostname']
+    when: v_du_todo | default(false)   
     tags:
-      - local-facts
-
-  - name: Here we are checking inventory_hostname (our LOCAL aliases from inventory file)
-    debug:
-      msg: "hostname is {{ inventory_hostname }}"
-    tags:
-      - local-facts
-
-  - name: Display all variables/facts known for a host
+      - t01-local-facts
+  
+  - name: "{{ tasks_file_name }} | Here we are checking inventory_hostname (our LOCAL aliases from inventory file)"          # UNTESTED
     ansible.builtin.debug:
-#      var: hostvars[inventory_hostname]   # this will print 100s of variables for each host, so avoid and use like below
+      msg: "hostname is {{ inventory_hostname }}"
+    when: v_du_todo | default(false)   
+    tags:
+      - k8_install_phase_2A-append_to_hosts_file
+#      - t_dbg_inv_hostname
+  
+
+
+  - name: "{{ tasks_file_name }} | Display all variables/facts known for a host                      "          # UNTESTED
+    ansible.builtin.debug:
+  #      var: hostvars[inventory_hostname]   # this will print 100s of variables for each host, so avoid and use like below
         var:
           - hostvars[inventory_hostname]['ansible_all_ipv4_addresses']
-#          - hostvars[inventory_hostname]['desired_variable_2']
-#          - hostvars[inventory_hostname]['ansible_default_ipv4']
-#      verbosity: 3                        # this will not work unless we do -vvv in ansible-playbook command line
+  #          - hostvars[inventory_hostname]['desired_variable_2']
+  #          - hostvars[inventory_hostname]['ansible_default_ipv4']
+  #      verbosity: 3                        # this will not work unless we do -vvv in ansible-playbook command line
+    when: v_du_todo | default(false)   
     tags:
-      - local-facts
-
-  - name: Printing variables that were defined in the task locally 
+      - t-dbg-all-facts
+  
+  
+  - name: "{{ tasks_file_name }} | Define multiple variables locally in the task and Print using debug                      "          # UNTESTED
     vars:
       UBUNTU_VERSION: 22.04
       RELEASE: APRIL 2022
-    debug:
+    ansible.builtin.debug:
       msg: Latest version of Ubuntu is {{ UBUNTU_VERSION }} and it is releasing on {{ RELEASE }}
       #msg: "{{ UBUNTU_VERSION }}"
+    when: v_du_todo | default(false)   
     tags:
       - variables
-
-
-  - name: Run a shell command and capture output data into a register (using shell and register modules)
-    ansible.builtin.shell:
-      cmd: "hostnamectl"
-    register: reg_output
-
-  - name: Print all the info stored in the register using the debug module
-    debug:
-      var: reg_output                              # specified the variable to be printed
-      # entire content of reg_output will be printed including stdout, stderr and rc (return code) and metadata like changed, failed etc etc
-
-      msg: "{{ reg_system_uptime.stdout }}"       # only the stdout
-
-  - name: Print only the stdout attribute of the register
-    debug:
-    #  msg: "{{ reg_output }}"              # shows all fields
-      msg: "{{ reg_output.stdout }}"
-
-
-  - name: Run free memory check command
+  
+  
+  - name: "{{ tasks_file_name }} | Run free memory check command                      "          # UNTESTED
     command: free -h
     register: reg_free_mem
-
-  - name: Now print the register variable values without using msg
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Now print the register variable values without using msg                      "          # UNTESTED
+    ansible.builtin.debug:
       var: reg_free_mem.stdout_lines
       # we will need to run the playbook with -v option for below verbosity to take affect
       verbosity: 1
+    when: v_du_todo | default(false)   
     tags:
       - variables
-
-  - name: List debug messages
-    debug:
+  
+  - name: "{{ tasks_file_name }} | List debug messages                      "          # UNTESTED
+    ansible.builtin.debug:
       msg:
         - India
         - Australia
         - Japan
-
-  - name: Dict debug messages
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Dict debug messages                      "          # UNTESTED
+    ansible.builtin.debug:
       msg:
         Country: India
         State: Goa
         City: Panaji
-
-  - name: Display the variable data type
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Display the variable data type                      "          # UNTESTED
+    ansible.builtin.debug:
       msg: 
         - " Data type of 'ansible_architecture'  is {{ ansible_architecture | type_debug }} "
         - " Data type of 'ansible_apparmor' is {{ ansible_apparmor | type_debug }} "
         - " Data type of 'ansible_all_ipv4_addresses' is {{ ansible_all_ipv4_addresses | type_debug }} "
-
-  - name: Simply printing the value of fact which is Ansible UnSafe Text type
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Simply printing the value of fact which is Ansible UnSafe Text type                      "          # UNTESTED
+    ansible.builtin.debug:
       msg: "{{ ansible_architecture }}"
+    when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
-
-  - name: Accessing an element of dictionary facts  (ie one of the facts output block displayed with { } )
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Accessing an element of dictionary facts  (ie one of the facts output block displayed with { } )                      "          # UNTESTED
+    ansible.builtin.debug:
       msg: "{{ansible_apparmor.status}}  {{ ansible_default_ipv4.address }} {{ ansible_dns.nameservers }}  {{ ansible_proc_cmdline.BOOT_IMAGE }} {{ ansible_lsb.description }}"
+    when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
-
-  - name: Accessing the list facts (ie a fact in a block of [ ] )
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Accessing the list facts (ie a fact in a block of [ ] )                      "          # UNTESTED
+    ansible.builtin.debug:
       msg: "{{ansible_all_ipv4_addresses}}  {{ ansible_all_ipv6_addresses }}  {{ ansible_mounts }}"
+    when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
-
-  - name: Accessing specific elements from a list of facts
-    debug:
+  
+  - name: "{{ tasks_file_name }} | Accessing specific elements from a list of facts                      "          # UNTESTED
+    ansible.builtin.debug:
       msg: "{{ ansible_all_ipv6_addresses[1] }}  {{ ansible_mounts[0].device }}"
+    when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
-
-  - name: Go through a facts dictionary using a loop
-    debug:
-#      msg: "Mount Point {{item.mount}} is at {{item.block_used/item.block_total*100}} percent "
+  
+  - name: "{{ tasks_file_name }} | Go through a facts dictionary using a loop                      "          # UNTESTED
+    ansible.builtin.debug:
+  #      msg: "Mount Point {{item.mount}} is at {{item.block_used/item.block_total*100}} percent "
       msg: " XX11 {{ index }} XX22 - YY11 {{ item }} YY22"
     loop: "{{ansible_mounts}}"
-#  loop: "{{ items|flatten(levels=1) }}"
+  #  loop: "{{ items|flatten(levels=1) }}"
     loop_control:
       index_var: index
-#    when: "{{ ansible_mounts[].fstype == 'ext4'}}"
+  #    when: "{{ ansible_mounts[].fstype == 'ext4'}}"
+    when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways-xxx
-
-  - name: Check if any swap file is enabled
+  
+  - name: "{{ tasks_file_name }} | Check if any swap file is enabled                      "          # UNTESTED
     # grep -w because I don't want /swap matching /swapfile, for example
     ansible.builtin.shell: "/sbin/swapon -s"                            # should show no rows and return code of 0 if no swap
     register: reg_fstab_swap_count
-#    tags:
-#      - just-this-task
- 
-  - name: Print some debug information
+    when: v_du_todo | default(false)   
+  #    tags:
+  #      - just-this-task
+   
+  - name: "{{ tasks_file_name }} | Print some debug information                      "          # UNTESTED
     vars:
       msg: |
         Module Variables ("vars"):
         --------------------------------
         {{ vars | to_nice_json }}
- 
+   
         Environment Variables ("environment"):
         --------------------------------
         {{ environment | to_nice_json }}
- 
+   
         GROUP NAMES Variables ("group_names"):
         --------------------------------
         {{ group_names | to_nice_json }}
- 
+   
         GROUPS Variables ("groups"):
         --------------------------------
         {{ groups | to_nice_json }}
- 
+   
         HOST Variables ("hostvars"):
         --------------------------------
         {{ hostvars | to_nice_json }}
- 
-    debug:
+   
+    ansible.builtin.debug:
       msg: "{{ msg.split('\n') }}"
-#    tags:
-#      - just-this-task
+    when: v_du_todo | default(false)   
+  #    tags:
+  #      - just-this-task
+  
+  
+  # --------------------------------------------------------------------------------
+  # --------------------------------------------------------------------------------
+  # If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.
+  # 
+  # When using the msg module, you should use double curly braces to print the variable value. But using the var parameter, you can just pass the variable name without any braces or quotes.
+  # eg - 
+  #     - name: "{{ tasks_file_name }} | Printing variable                      "          # UNTESTED
+  #       vars:
+  #         UBUNTU_VERSION: 22.04
+  #       ansible.builtin.debug:
+  #         var: UBUNTU_VERSION
+  # 
+  # 
+  # the task debug module accepts arguments through the msg parameter
+  # It is always recommended to use double quotes when working with msg parameter.
+  # 
+  # 
+  # 3. Debug Module With Verbosity Parameter
+  # Ansible supports four level of verbosity. By default verbosity is set to zero. To print the messages you have to increase the verbosity using -v flag.
+  # 
+  # $ ansible all -m shell -a "uptime" -v # LEVEL 1
+  # $ ansible all -m shell -a "uptime" -vv # LEVEL 2
+  # $ ansible all -m shell -a "uptime" -vvv # LEVEL 3
+  # $ ansible all -m shell -a "uptime" -vvvv # LEVEL 4
+  # 
+  # https://ostechnix.com/ansible-debug-module/
+  # 
+  # skipping: [rocky.anslab.com] => {"skipped_reason": "Verbosity threshold not met."}
+  # Since I have set the verbosity to two, I have to use the -vv flag to print the messages. Similarly according to the verbosity level you set in the task, you should use the corresponding level of -v flag when running the playbook.
+  # 
+  
 
-
-#------
-#In the following playbook, we will define a variable called test and print it using two methods, the first is using the var option and the second is using msg.
-
-- name: playbook
-  vars:
-    test: hello
-  tasks:
-    - name: dubug option 1
-      debug: var=test
-      
-    - name: dubug option 2
-      debug:
-        msg: "{{ test }}"
-#-------
-
-# --------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------
-# If you wish to print the variable alone without any strings like we did in the last section, then you can use the var parameter and pass the variable name as argument.
-# 
-# When using the msg module, you should use double curly braces to print the variable value. But using the var parameter, you can just pass the variable name without any braces or quotes.
-# eg - 
-#     - name: Printing variable
-#       vars:
-#         UBUNTU_VERSION: 22.04
-#       debug:
-#         var: UBUNTU_VERSION
-# 
-# 
-# the task debug module accepts arguments through the msg parameter
-# It is always recommended to use double quotes when working with msg parameter.
-# 
-# 
-# 3. Debug Module With Verbosity Parameter
-# Ansible supports four level of verbosity. By default verbosity is set to zero. To print the messages you have to increase the verbosity using -v flag.
-# 
-# $ ansible all -m shell -a "uptime" -v # LEVEL 1
-# $ ansible all -m shell -a "uptime" -vv # LEVEL 2
-# $ ansible all -m shell -a "uptime" -vvv # LEVEL 3
-# $ ansible all -m shell -a "uptime" -vvvv # LEVEL 4
-# 
-# https://ostechnix.com/ansible-debug-module/
-# 
-# skipping: [rocky.anslab.com] => {"skipped_reason": "Verbosity threshold not met."}
-# Since I have set the verbosity to two, I have to use the -vv flag to print the messages. Similarly according to the verbosity level you set in the task, you should use the corresponding level of -v flag when running the playbook.
-# 
-
-
+  tags:
+    - print_action                          # Applies to all tasks within the block
 
 
 

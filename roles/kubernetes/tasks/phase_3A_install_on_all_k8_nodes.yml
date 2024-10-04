@@ -152,7 +152,7 @@
     register: reg_file_cmd_output
 
   - name: Print output of above file cmd output on the key files
-    debug:
+    ansible.builtin.debug:
     #  msg: "{{ reg_system_uptime }}"              # shows all fields
       msg: "{{ reg_file_cmd_output.stdout }}"       # only the stdout
 
@@ -228,7 +228,7 @@
     become: true
 
   - name: Section 2 - Print output register data
-    debug:
+    ansible.builtin.debug:
       msg: "{{ reg_output.stdout }}"
 
   - name: Section 2 - Check containerd version
@@ -238,7 +238,7 @@
     become: true
 
   - name: Section 2 - Print output register data
-    debug:
+    ansible.builtin.debug:
       msg: "{{ reg_output.stdout }}"
 
 

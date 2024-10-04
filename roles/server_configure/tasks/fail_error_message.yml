@@ -25,7 +25,7 @@
 # fatal: [acg-k8-worker3]: FAILED! => {"changed": false, "msg": "failed - invalid machine."}
 
   - name: Print the msg
-    debug:
+    ansible.builtin.debug:
       msg: "{{ reg_out_var.stdout }}"
 
 
@@ -47,5 +47,5 @@
       when: "{{ 'mymachine' in out.stdout }}"
 
     - name: Print the msg
-      debug:
+      ansible.builtin.debug:
     	msg: "{{ out.stdout }}"

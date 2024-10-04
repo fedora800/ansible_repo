@@ -1,0 +1,330 @@
+---
+
+
+#-- 02A - Import - call very specific tasks from another file in a very specific order - METHOD 1 - using tags
+#-- 02B - Import - call very specific tasks from another file in a very specific order - METHOD 2 - using when conditionals
+#-- 02C - Import - call very specific tasks from another file in a very specific order - using tags AND when conditionals
+#-- 02D - Import - call very specific tasks from another file in a very specific order - using conditional tags
+#-- 03  - Defining a tag just once for all tasks in the file using a block
+#-- 04  - include_tasks key points todo
+
+# --------------------------------------------------------------------------------
+
+
+- hosts: all
+
+  tasks:
+
+    # In this case, ALL THE TASKS defined in path/to/tasks_file.yml will be executed as part of the current play.
+    # The imported tasks are effectively inlined and treated as if they were part of the original tasks list.
+    - import_tasks: path/to/tasks_file.yml
+
+
+--------------------------------------------------------------------------------
+
+The difference between the two examples you provided lies in the scope and precedence of the variables being set.
+
+set_fact:
+
+set_fact is used to set a fact (variable) at the host level or the play level.
+The fact set using set_fact is available for the rest of the play or playbook.
+In your example, tasks_file_name is set to "apt_pkg_tasks.yml" at the host level, which means this value will be available for all tasks within the current play.
+vars:
+
+vars is used to define variables at the play level or role level.
+Variables defined under vars have a higher precedence than variables defined in other places (like inventory files or role defaults).
+In your example, tasks_file_name is set to "debug_usage.yml" at the play level, overriding any other value for tasks_file_name defined elsewhere.
+When to use set_fact or vars depends on your specific use case and the scope you need for the variables:
+
+Use set_fact:
+
+When you need to dynamically set a variable based on the output of a task or some conditional logic.
+When you want to set a variable at the host level, and have it available for the rest of the play or playbook.
+Use vars:
+
+When you have a predefined set of variables that you want to use throughout a play or role.
+When you want to override variables defined in other places (like inventory files or role defaults) with higher precedence.
+In general, it's recommended to use vars for defining variables that are known beforehand and set_fact for dynamically setting variables based on task output or conditional logic.
+
+Here's an example that illustrates the difference:
+
+- hosts: all
+  vars:
+    tasks_file_name: "debug_usage.yml"
+
+  tasks:
+    - name: Set tasks_file_name using set_fact
+      set_fact:
+        tasks_file_name: "apt_pkg_tasks.yml"
+
+    - name: Import tasks from the file defined in vars
+      import_tasks: "{{ tasks_file_name }}"
+
+    - name: Set tasks_file_name using set_fact again
+      set_fact:
+        tasks_file_name: "another_tasks_file.yml"
+
+    - name: Import tasks from the file set using set_fact
+      import_tasks: "{{ tasks_file_name }}"
+In this example:
+
+The vars section sets tasks_file_name to "debug_usage.yml".
+The first set_fact task overrides tasks_file_name to "apt_pkg_tasks.yml".
+The second import_tasks uses the value set by set_fact ("apt_pkg_tasks.yml").
+The second set_fact task changes tasks_file_name to "another_tasks_file.yml".
+The third import_tasks uses the new value set by the second set_fact ("another_tasks_file.yml").
+
+--------------------------------------------------------------------------------
+
+#-- 02A - Import - call very specific tasks from another file in a very specific order - METHOD 1 - using tags
+
+# update_tasks.yml
+
+- name: Task 1 - Update apt cache
+  apt:
+    update_cache: yes
+  tags:
+    - task_1
+
+- name: Task 2 - Install packages
+  apt:
+    name: nginx
+    state: present
+  tags:
+    - task_2
+
+- name: Task 3 - Upgrade system
+  apt:
+    upgrade: dist
+  tags:
+    - task_3
+
+# main.yml
+
+- name: Call Task 1 from update_tasks.yml
+  ansible.builtin.include_tasks: update_tasks.yml
+  tags: task_1
+
+- name: Call Task 3 from update_tasks.yml
+  ansible.builtin.include_tasks: update_tasks.yml
+  tags: task_3
+
+- name: Call Task 2 from update_tasks.yml
+  ansible.builtin.include_tasks: update_tasks.yml
+  tags: task_2
+
+
+# --------------------------------------------------------------------------------
+
+#-- 02B - Import - call very specific tasks from another file in a very specific order - METHOD 2 - using when conditionals
+
+# main.yml
+
+- name: Call specific tasks from update_tasks.yml
+  ansible.builtin.include_tasks: update_tasks.yml
+  vars:
+    run_task_1: true
+    run_task_2: false
+    run_task_3: true
+
+# update_tasks.yml
+
+- name: Task 1 - Update apt cache
+  apt:
+    update_cache: yes
+  when: run_task_1 | bool
+
+- name: Task 2 - Install packages
+  apt:
+    name: nginx
+    state: present
+  when: run_task_2 | bool
+
+- name: Task 3 - Upgrade system
+  apt:
+    upgrade: dist
+  when: run_task_3 | bool
+
+
+# --------------------------------------------------------------------------------
+
+#-- 02C - Import - call very specific tasks from another file in a very specific order - using tags AND when conditionals
+
+Tag Evaluation:
+When you run an Ansible playbook with --tags, it will attempt to run any tasks that match those tags REGARDLESS of the when condition.
+If a task is tagged, it is considered for execution if the specified tag is passed, even if the when condition evaluates to false.
+
+When Condition:
+The when condition only controls whether the task itself is executed AFTER it has been selected to run based on tags.
+If the when condition evaluates to false, the task will be skipped, but it will still be considered for execution based on its tag.
+
+
+Example - 
+In your file_management.yml, if you have a task like this:
+
+- name: copy 100
+  copy:
+    src: /etc/hostname
+    dest: /tmp/
+    mode: 0755
+    backup: yes 
+  when: v_fm_copy_1 | default(false)
+  tags:
+    - k8_change
+
+When you run the playbook with --tag k8_change :
+1 - the "copy 100" task will be SELECTED FOR EXECUTION as it has the tag k8_change 
+2 - now it will check if v_fm_copy_1 evaluates to false and won't run if so and will be SKIPPED (but it is still "considered" to have been executed in the context of the tag)
+
+one solution is to use CONDITIONAL TAGS like below
+
+
+# --------------------------------------------------------------------------------
+
+#-- 02D - Import - call very specific tasks from another file in a very specific order - using conditional tags
+
+# You can conditionally apply tags based on the when condition, example below - 
+
+- name: copy 100
+  copy:
+    src: /etc/hostname
+    dest: /tmp/
+    mode: 0755
+    backup: yes 
+  when: v_fm_copy_1 | default(false)
+  tags:
+    - "{{ 'k8_change' if v_fm_copy_1 else '' }}"
+
+NOTES - 
+
+Task Inclusion: When you use include_tasks, all tasks in the included file are executed unless they are skipped based on their tags or when conditions. However, if the included file has tasks with no conditions (or conditions that evaluate to true), those tasks will run regardless of the tags specified in the main playbook.
+
+Task Tags and Inheritance: Tasks do inherit the tags from the include_tasks statement, but if tasks do not have specific tags set, they can still execute if included, unless explicitly skipped.
+
+Order of Execution: When a playbook runs, it processes the tasks in the order they are defined. If a task is included, all tasks in that file are evaluated unless filtered out by tags or conditions.
+
+# --------------------------------------------------------------------------------
+
+#-- 03  - Defining a tag just once for all tasks in the file using a block
+
+- block:
+
+  - name: task 1
+  
+  - name: task 2
+  
+  - name: task 3
+
+  tags:
+    - print_action                          # Applies to all tasks within the block
+
+
+# **BUT VERY IMPORTANT BELOW **
+# If you have a block tagged with print_action and it contains three tasks (let's say task A, task B, and task C), all three will run if you run the playbook with --tags print_action, 
+# EVEN IF tasks A and C do not have any tags of their own.
+# If task B has the tag k8_install_phase_2A-append_to_hosts_file, and you run the playbook with that tag, only task B will execute.
+# so i dont know if having a block section for my use cases has any value at all
+
+# --------------------------------------------------------------------------------
+
+#-- 04  - include_tasks key points todo
+
+INCLUDE_TASKS
+
+
+Key Points
+
+    Tag Propagation: When you include a task file using include_tasks, all tasks within that included file are processed. If no specific tags are set on the included task, it may execute all tasks from that file, irrespective of the tags defined in the main playbook.
+
+    No Tags Defined: If the included task file (debug_usage.yml) does not have tags for its internal tasks, they will execute regardless of what tags you specify in the main.yaml.
+
+    Default Behavior: By default, if you don't specify tags when calling a playbook, all tasks will run unless you restrict them using tags.
+
+# --------------------------------------------------------------------------------
+
+
+
+
+
+
+# --------------------------------------------------------------------------------
+
+#-- 03  - Defining a tag just once for all tasks in the file using a block
+
+- block:
+
+  - name: task 1
+  
+  - name: task 2
+  
+  - name: task 3
+
+  tags:
+    - print_action                          # Applies to all tasks within the block
+
+
+# **BUT VERY IMPORTANT BELOW **
+# If you have a block tagged with print_action and it contains three tasks (let's say task A, task B, and task C), all three will run if you run the playbook with --tags print_action, 
+# EVEN IF tasks A and C do not have any tags of their own.
+# If task B has the tag k8_install_phase_2A-append_to_hosts_file, and you run the playbook with that tag, only task B will execute.
+# so i dont know if having a block section for my use cases has any value at all
+
+# --------------------------------------------------------------------------------
+
+#-- 04  - include_tasks key points todo
+
+INCLUDE_TASKS
+
+Key Points
+
+    Tag Propagation: When you include a task file using include_tasks, all tasks within that included file are processed. If no specific tags are set on the included task, it may execute all tasks from that file, irrespective of the tags defined in the main playbook.
+
+    No Tags Defined: If the included task file (debug_usage.yml) does not have tags for its internal tasks, they will execute regardless of what tags you specify in the main.yaml.
+
+    Default Behavior: By default, if you don't specify tags when calling a playbook, all tasks will run unless you restrict them using tags.
+
+# --------------------------------------------------------------------------------
+
+
+
+
+# --------------------------------------------------------------------------------
+
+#-- 03  - Defining a tag just once for all tasks in the file using a block
+
+- block:
+
+  - name: task 1
+  
+  - name: task 2
+  
+  - name: task 3
+
+  tags:
+    - print_action                          # Applies to all tasks within the block
+
+
+# **BUT VERY IMPORTANT BELOW **
+# If you have a block tagged with print_action and it contains three tasks (let's say task A, task B, and task C), all three will run if you run the playbook with --tags print_action, 
+# EVEN IF tasks A and C do not have any tags of their own.
+# If task B has the tag k8_install_phase_2A-append_to_hosts_file, and you run the playbook with that tag, only task B will execute.
+# so i dont know if having a block section for my use cases has any value at all
+
+# --------------------------------------------------------------------------------
+
+#-- 04  - include_tasks key points todo
+
+INCLUDE_TASKS
+
+Key Points
+
+    Tag Propagation: When you include a task file using include_tasks, all tasks within that included file are processed. If no specific tags are set on the included task, it may execute all tasks from that file, irrespective of the tags defined in the main playbook.
+
+    No Tags Defined: If the included task file (debug_usage.yml) does not have tags for its internal tasks, they will execute regardless of what tags you specify in the main.yaml.
+
+    Default Behavior: By default, if you don't specify tags when calling a playbook, all tasks will run unless you restrict them using tags.
+
+# --------------------------------------------------------------------------------
+
+
+
