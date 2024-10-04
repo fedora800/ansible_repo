@@ -1,0 +1,158 @@
+---
+- set_fact:
+    tasks_file_name: "resources.yml"
+
+- block:
+
+# ++++++++++++++++++++++++++++++++++++++++  this code got from swap.yml and deleted that file ++++++++++++++++++++++ start ++++++++++++++++++
+
+  - name: Check if swap is enabled                # WORKS
+    # grep -w because I don't want /swap matching /swapfile, for example
+    ansible.builtin.shell: "/sbin/swapon --show"                            # should show no rows and return code of 0 if no swap
+    register: reg_fstab_swap_count
+    when: v_rsrc_swap_check | default(false)
+  
+  - debug:                                        # WORKS
+      var: reg_fstab_swap_count.stdout
+    when: v_rsrc_swap_check | default(false)
+  
+  
+  - name: "{{ tasks_file_name }} | Disable swap"
+    become: true
+    command: /sbin/swapoff -a
+    tags:
+      - k8_install_phase_2A-disable_swap
+    #when: v_rsrc_swapoff | default(false)
+  
+  #  
+  #  - name: Ensure swap file doesn't exist (if configured)
+  #    file:
+  #      path: "{{ swap_file_path }}"
+  #
+  #  - name: Disable SWAP in fstab since kubernetes can't work with swap enabled
+  #    replace:
+  #      path: /etc/fstab
+  #      regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+  #      replace: '# \1'
+  #
+  ## if swap on, will look something like this - 
+  ## $ free -h
+  ##              total       used       free     shared    buffers     cached
+  ## Mem:           14G        12G       2.7G       232K       512M       2.8G
+  ## -/+ buffers/cache:       8.9G       6.0G
+  ## Swap:         8.0G       289M       7.7G
+  ## 
+  ## $ grep swap /etc/fstab
+  ## /dev/mapper/rootvg-swapvol swap                    swap    defaults        0 0
+  ##
+  ## $ /sbin/swapon -s
+  ## Filename                                Type            Size    Used    Priority
+  ##/dev/dm-1                               partition       8388604 296036  -1
+  #
+  #
+  ##turn off swap and comment out /etc/fstab if there is any swap
+  ##e.g. - /dev/hda6   swap     swap   defaults        0    0
+  ##    or  free command shows ->
+  ##Swap:          2047           5        2042
+  ##$ grep -i --color swap /proc/meminfo
+  ##SwapCached:        39196 kB
+  ##SwapTotal:       8388604 kB
+  ##SwapFree:        7995420 kB
+  ##https://www.cyberciti.biz/faq/linux-add-a-swap-file-howto/
+  #
+  # https://codeberg.org/ansible/swap/src/branch/main/tasks/swap.yml
+  # https://supportex.net/blog/2014/10/ansible-add-swap-linux-box/
+  # https://github.com/geerlingguy/ansible-role-swap
+  # https://germaniumhq.com/2019/02/14/2019-02-14-Disabling-Swap-for-Kubernetes-in-an-Ansible-Playbook/
+  
+  #++++++++++++++++++++++++++++++++++++++++  this code got from swap.yml and deleted that file +++++++++++++++++++++++++++++ end +++++++++++
+  
+  - name: Get memory information
+    debug:
+      var: ansible_memory_mb
+  
+  - name: Display total RAM
+    debug:
+      msg: "Total RAM is {{ ansible_memory_mb.real.total }} MB"
+  
+  - name: Check if RAM is less than 2 GB and fail
+    fail:
+      msg: "Error: Not enough RAM. Minimum required is 2 GB, but only {{ (ansible_memory_mb.real.total / 1024) | round(2) }} GB is available."
+    when: ansible_memory_mb.real.total < 2048
+  
+  - name: Warning about low RAM if between 2GB and 4GB
+    debug:
+      msg: "Warning: The system has less than 2 GB of RAM ({{ (ansible_memory_mb.real.total / 1024) | round(2) }} GB). This may affect performance."
+  
+  
+  
+  #++++++++++++++++++++++++++++++++++++++++  this code got from check_disk_space.yml and deleted that file +++++++++++++++++++++++++++++ begin +++++++++++
+  
+  
+  - name: Check /tmp freespace
+    shell: /usr/bin/df /tmp | awk '{print $4}' | tail -1
+    register: reg_tmp_space_free
+    tags:
+      - just-this-task  
+  
+  - name: Print the register value of variable gathered from previous command
+    debug:
+  #    var: reg_tmp_space_free          # this will print the whole object 
+      msg: "free space = {{ reg_tmp_space_free.stdout }}"
+    tags:
+      - just-this-task  
+  
+  - name: Compare the freespace against our requirements
+    # checks if the free space in /tmp is less than 3GB. If it is, the task fails and displays error message.
+    fail:
+      msg: /tmp does not have the minimum space required to continue (3Gb requested). 
+    when: reg_tmp_space_free.stdout|float is lt 3000000  # in Kb
+    #when: reg_tmp_space_free.stdout|float is lt 30000000   # 30GB, just to test failure
+    changed_when: false
+    register: tmp_space_check
+    tags:
+      - just-this-task  
+  
+  - name: Print a custom message if there's enough space
+    # when the previous task did not fail (
+    debug:
+      msg: "There's sufficient space in /tmp."
+  #  when: tmp_space_check.failed
+    tags:
+      - just-this-task
+  
+  #++++++++++++++++++++++++++++++++++++++++  this code got from check_disk_space.yml and deleted that file +++++++++++++++++++++++++++++ end +++++++++++
+  
+  
+  #++++++++++++++++++++++++++++++++++++++++  this code got from change_hostname.yml and deleted that file +++++++++++++++++++++++++++++ start +++++++++++
+  
+  # works
+  # referred https://github.com/codylane/ansible-playbook-change-hostname
+  # https://www.middlewareinventory.com/blog/ansible-inventory_hostname-ansible_hostname-variables/
+  
+  
+  - name: Print the hostnames in inventory
+    debug:
+      msg: "{{ inventory_hostname }}"
+    tags:
+      - just-this-task  
+  
+  - name: Change the remote hostname using inventory name
+    ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+    tags:
+      - k8_install_phase_2A-change_hostname
+  
+  - name: Here we are checking ansible_hostname (actual REMOTE host name from returned values)
+    debug:
+      msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+    tags:
+      - just-this-task  
+  
+  
+  #++++++++++++++++++++++++++++++++++++++++  this code got from change_hostname.yml and deleted that file +++++++++++++++++++++++++++++ end +++++++++++
+  
+  
+  tags:
+    - print_action                          # Applies to all tasks within the block
+

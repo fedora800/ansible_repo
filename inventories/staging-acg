@@ -1,17 +1,15 @@
-
 [all:vars]
 log_filename="/home/cloud_user/temp/ansible_playbook_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.log"
 
-
-[k8s_nodes_control]
-#acg-control1        ansible_host=172.31.118.17
-acg-control1        ansible_host=acg-control1
+[k8s_nodes_controlplane]
+#acg-cpane1        ansible_host=172.31.118.17
+acg-cpane1        ansible_host=acg-cpane1
 
 [k8s_nodes_worker]
 acg-worker1         ansible_host=acg-worker1
-acg-worker2         ansible_host=acg-worker2
+#acg-worker2         ansible_host=acg-worker2
 
 [k8s_all_nodes_private_ips:children]
-k8s_nodes_control
+k8s_nodes_controlplane
 k8s_nodes_worker
 
