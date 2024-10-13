@@ -6,7 +6,7 @@
   
   tasks:
     - name: Ensure log_filename is set
-      debug:
+      ansible.builtin.debug:
         var: log_filename
       tags:
         - print_action
@@ -18,7 +18,7 @@
         - print_action
 
 #     - name: Print the hostnames in inventory
-#       debug:
+#       ansible.builtin.debug:
 #         msg: "{{ inventory_hostname }}"
 # 
     - import_tasks: ../roles/server_configure/tasks/apt_pkg_tasks.yml

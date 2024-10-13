@@ -25,7 +25,7 @@
   
   
   - name: "{{ tasks_file_name }} | Display LOCAL gathered facts"
-    debug:
+    ansible.builtin.debug:
       msg: "Distribution: {{ ansible_distribution }}, Version: {{ ansible_distribution_version }}, Hostname: {{ ansible_hostname }}"
     when: v_du_todo | default(false)   
     tags:
@@ -37,7 +37,7 @@
   
   # ansible all -m setup will show all the facts
   - name: "{{ tasks_file_name }} | Here we are checking and showing multiple ansible facts (from **REMOTE** host from returned values)"                          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }} a-distrel={{ ansible_distribution_release }} {{ ansible_distribution_version }}
             a-cpucores={{ ansible_processor_vcpus }} a-nprocs={{ ansible_processor_nproc }}
             a-type={{ ansible_product_name }} a-total-mem={{ ansible_memory_mb.real.total }} 
@@ -49,7 +49,7 @@
       - t02-remote-facts
   
   - name: "{{ tasks_file_name }} | Get ansible facts as variables, filter them, and displaying them using a playbook                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
   #      var: ansible_facts["cmdline"]
       var: ansible_facts["all_ipv6_addresses"]                         # list way
     when: v_du_todo | default(false)   
@@ -61,7 +61,7 @@
   
   # ---------- 03 Managing and Printing variables ------------------------------
   - name: "{{ tasks_file_name }} | Print a simple statement when task runs against a remote host"
-    debug:
+    ansible.builtin.debug:
       msg: "--debug message 001--"
     when: v_du_todo | default(false)   
   
@@ -73,20 +73,20 @@
   
   # This will print the entire contents of reg_output, including stdout, stderr, rc, etc.
   - name: "{{ tasks_file_name }} | Print all the info stored in the register                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       var: reg_output
     when: v_du_todo | default(false)   
   
   # This will print only the stdout content of reg_output.
   - name: "{{ tasks_file_name }} | Print only stdout from the registered output                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "{{ reg_output.stdout }}"
     when: v_du_todo | default(false)   
   
   
   
   - name: "{{ tasks_file_name }} | Display important facts                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       var:
         - ansible_os_family
         - ansible_distribution
@@ -101,7 +101,7 @@
       - t01-local-facts
   
   - name: "{{ tasks_file_name }} | Here we are checking inventory_hostname (our LOCAL aliases from inventory file)"          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "hostname is {{ inventory_hostname }}"
     when: v_du_todo | default(false)   
     tags:
@@ -127,7 +127,7 @@
     vars:
       UBUNTU_VERSION: 22.04
       RELEASE: APRIL 2022
-    debug:
+    ansible.builtin.debug:
       msg: Latest version of Ubuntu is {{ UBUNTU_VERSION }} and it is releasing on {{ RELEASE }}
       #msg: "{{ UBUNTU_VERSION }}"
     when: v_du_todo | default(false)   
@@ -140,7 +140,7 @@
     register: reg_free_mem
   
   - name: "{{ tasks_file_name }} | Now print the register variable values without using msg                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       var: reg_free_mem.stdout_lines
       # we will need to run the playbook with -v option for below verbosity to take affect
       verbosity: 1
@@ -149,56 +149,56 @@
       - variables
   
   - name: "{{ tasks_file_name }} | List debug messages                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg:
         - India
         - Australia
         - Japan
   
   - name: "{{ tasks_file_name }} | Dict debug messages                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg:
         Country: India
         State: Goa
         City: Panaji
   
   - name: "{{ tasks_file_name }} | Display the variable data type                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: 
         - " Data type of 'ansible_architecture'  is {{ ansible_architecture | type_debug }} "
         - " Data type of 'ansible_apparmor' is {{ ansible_apparmor | type_debug }} "
         - " Data type of 'ansible_all_ipv4_addresses' is {{ ansible_all_ipv4_addresses | type_debug }} "
   
   - name: "{{ tasks_file_name }} | Simply printing the value of fact which is Ansible UnSafe Text type                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "{{ ansible_architecture }}"
     when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
   
   - name: "{{ tasks_file_name }} | Accessing an element of dictionary facts  (ie one of the facts output block displayed with { } )                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "{{ansible_apparmor.status}}  {{ ansible_default_ipv4.address }} {{ ansible_dns.nameservers }}  {{ ansible_proc_cmdline.BOOT_IMAGE }} {{ ansible_lsb.description }}"
     when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
   
   - name: "{{ tasks_file_name }} | Accessing the list facts (ie a fact in a block of [ ] )                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "{{ansible_all_ipv4_addresses}}  {{ ansible_all_ipv6_addresses }}  {{ ansible_mounts }}"
     when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
   
   - name: "{{ tasks_file_name }} | Accessing specific elements from a list of facts                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
       msg: "{{ ansible_all_ipv6_addresses[1] }}  {{ ansible_mounts[0].device }}"
     when: v_du_todo | default(false)   
     tags:
       - facts-diff-ways
   
   - name: "{{ tasks_file_name }} | Go through a facts dictionary using a loop                      "          # UNTESTED
-    debug:
+    ansible.builtin.debug:
   #      msg: "Mount Point {{item.mount}} is at {{item.block_used/item.block_total*100}} percent "
       msg: " XX11 {{ index }} XX22 - YY11 {{ item }} YY22"
     loop: "{{ansible_mounts}}"
@@ -241,7 +241,7 @@
         --------------------------------
         {{ hostvars | to_nice_json }}
    
-    debug:
+    ansible.builtin.debug:
       msg: "{{ msg.split('\n') }}"
     when: v_du_todo | default(false)   
   #    tags:
@@ -257,7 +257,7 @@
   #     - name: "{{ tasks_file_name }} | Printing variable                      "          # UNTESTED
   #       vars:
   #         UBUNTU_VERSION: 22.04
-  #       debug:
+  #       ansible.builtin.debug:
   #         var: UBUNTU_VERSION
   # 
   # 

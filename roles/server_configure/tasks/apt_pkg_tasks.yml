@@ -193,7 +193,7 @@
 # # to invoke this from another file - 
 # # Include tasks from server_configure to install OpenJDK if needed
 # #- name: Include task to install OpenJDK
-# #  include_tasks: ../../server_configure/tasks/install_pkgs_with_apt.yml
+# #  ansible.builtin.include_tasks: ../../server_configure/tasks/install_pkgs_with_apt.yml
 # #  vars:
 # #    install_nginx: true
 # 

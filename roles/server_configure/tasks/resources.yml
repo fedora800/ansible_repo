@@ -1,4 +1,5 @@
 ---
+<<<<<<< HEAD
 # resources.yml
 # -----------------------------------------------------------------------------------------------------
 # Section 01 - Operating System related
@@ -258,8 +259,6 @@
   debug:
     msg: "IPv6 Addresses: {{ ansible_all_ipv6_addresses | default([]) }}"
   when: v_is2_ip6info is defined and v_is2_ip6info  
-
-
 
 
 

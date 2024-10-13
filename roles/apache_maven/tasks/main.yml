@@ -20,11 +20,11 @@
   register: reg_mvn_version_info     # output is saved in this variable
 
 - name : 04 / show debug info
-  debug:
+  ansible.builtin.debug:
     msg:
     - "Remote host {{ inventory_hostname }} has gateway {{ ansible_default_ipv4.gateway }}"
     - "The maven version is {{ reg_mvn_version_info.stdout }}"
 
 - name : 05 / list all known variables and facts
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]

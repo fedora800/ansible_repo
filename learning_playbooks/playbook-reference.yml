@@ -125,7 +125,7 @@ The third import_tasks uses the new value set by the second set_fact ("another_t
 # main.yml
 
 - name: Call specific tasks from update_tasks.yml
-  include_tasks: update_tasks.yml
+  ansible.builtin.include_tasks: update_tasks.yml
   vars:
     run_task_1: true
     run_task_2: false

@@ -4,7 +4,7 @@
 
   # prerequisite is java so selectively running that specific task from this role by using a variable in caller script
 - name: Call tasks from server_configure/install_pkgs_with_apt.yml file 
-  include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/install_pkgs_with_apt.yml
+  ansible.builtin.ansible.builtin.include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/install_pkgs_with_apt.yml
 
   # sudo wget -O /usr/share/keyrings/jenkins-keyring.asc  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
   # fetch the gpg key that signs Jenkins's Ubuntu packages and save it to the created keyring directory.
@@ -29,7 +29,7 @@
 
 
 - name: Call the <Update apt packages> task 
-  include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/apt_pkg_tasks.yml
+  ansible.builtin.include_tasks: /home/cloud_user/git-projects/ansible_repo/roles/server_configure/tasks/apt_pkg_tasks.yml
   tags:
     - update_apt  # This ensures only the task with this tag is run
 

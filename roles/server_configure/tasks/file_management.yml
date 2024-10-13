@@ -7,6 +7,9 @@
 #  no_log: true
 
 
+- set_fact:
+    tasks_file_name: "file_management.yml"
+
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/replace_module.html
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
@@ -229,4 +232,3 @@
   debug:
     msg: "Exiting file_management.yml"
   when: v_debug is true
-
