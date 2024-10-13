@@ -15,28 +15,28 @@
   tasks:
 
 #     - name: Test task with a tag 111
-#       debug:
+#       ansible.builtin.debug:
 #         msg: "This is a test."
 #       tags:
 #         - hello123
 
 
     - name: 2A-01 - Append Hostname and IP records block from file_management.yml
-      include_tasks: ../../server_configure/tasks/file_management.yml
+      ansible.builtin.include_tasks: ../../server_configure/tasks/file_management.yml
       when: v_run_phase_2A_tasks
       tags: t_k8_install_phase_2A
 
 #     - name: 2A-02- Print hostname defined in inventory
-#       include_tasks: ../../server_configure/tasks/debug_usage.yml
+#       ansible.builtin.include_tasks: ../../server_configure/tasks/debug_usage.yml
 #       tags: k8_install_phase_2A-append_to_hosts_file
 
 # 
 # 
 #     - name: call- Change node hostname to hostname defined in inventory
-#       include_tasks: ../../server_configure/tasks/resources.yml
+#       ansible.builtin.include_tasks: ../../server_configure/tasks/resources.yml
 #       tags: k8_install_phase_2A-change_hostname
 # 
 #     - name: call- Disable Swap
-#       include_tasks: ../../server_configure/tasks/resources.yml
+#       ansible.builtin.include_tasks: ../../server_configure/tasks/resources.yml
 #       tags: k8_install_phase_2A-disable_swap
 # 

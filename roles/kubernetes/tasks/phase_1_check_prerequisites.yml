@@ -18,11 +18,11 @@
 #--------------------------------------------------------------------------------
 
     - name: Display all gathered facts
-      debug:
+      ansible.builtin.debug:
         var: ansible_facts
 
     - name: Show the total available RAM
-      debug:
+      ansible.builtin.debug:
         msg: "Total RAM is {{ ansible_memory_mb.real.total }} MB"
 
     - name: Fail if RAM is less than 2 GB (2048 MB)
@@ -31,7 +31,7 @@
       when: ansible_memory_mb.real.total < 2048
 
     - name: Print a warning if RAM is between 2 GB and 4 GB
-      debug:
+      ansible.builtin.debug:
         msg: "Warning: RAM is low at {{ ansible_memory_mb.real.total }} MB. Consider upgrading."
       when: ansible_memory_mb.real.total >= 2048 and ansible_memory_mb.real.total < 4096
 
@@ -39,9 +39,9 @@
 
   # below 2 associated tasks work, but i think i commented because it does the fail and not proceed to the next tasks
   # - name: check memory ---testing--
-  #   debug: 
+  #   ansible.builtin.debug: 
   #     var=ansible_memory_mb
-  #   debug: 
+  #   ansible.builtin.debug: 
   #     msg: "total RAM is {{ ansible_memory_mb.real.total }}"
   # 
   # - name: do the fail
