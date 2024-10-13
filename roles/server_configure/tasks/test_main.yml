@@ -1,0 +1,30 @@
+---
+# test_main.yml
+
+- hosts: all
+  gather_facts: yes
+  become: true
+
+  tasks:
+
+    # First inclusion for IS1-03
+    - name: Run task IS1-03 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_1.yml
+      vars:
+        v_run_task: "IS1-03"
+
+    # Second inclusion for IS1-01
+    - name: Run task IS1-01 second
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_1.yml
+      vars:
+        v_run_task: "IS1-01"
+    
+    - name: Run task IS2-04 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_2.yml
+      vars:
+        v_run_task: "IS2-04"
+
+    - name: Run task IS2-01 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_2.yml
+      vars:
+        v_run_task: "IS2-01"

@@ -1,0 +1,63 @@
+---
+# ufw_firewall.yml
+
+# ufw is not installed in the regular ansible package
+# ansible-galaxy collection list will show if it is. grep for community
+# to install, ansible-galaxy collection install community.general
+# then,we will see it,  ansible-galaxy collection list | grep  gener
+#community.general             6.5.0
+# to use, specify community.general.ufw
+
+- name: Setting fact for ufw_firewall.yml
+  ansible.builtin.set_fact:
+    f_this_file_name: "ufw_firewall.yml"
+#  no_log: true
+
+- name: "{{ f_this_file_name }} | Debug - Enter ufw_firewall.yml"
+  debug:
+    msg: "Entered ufw_firewall.yml"
+  when: v_debug is true
+
+- name: "{{ f_this_file_name }} | Install UFW package"
+  ansible.builtin.package:
+    name: ufw
+    state: present
+
+- name: "{{ f_this_file_name }} | Enable and start UFW service"
+  ansible.builtin.service:
+    name: ufw
+    state: started
+    enabled: true
+
+- name: "{{ f_this_file_name }} | Ensure UFW is active"
+  ansible.builtin.command: ufw status
+  register: ufw_status
+
+- name: Check if UFW is active
+  ansible.builtin.fail:
+    msg: "UFW is not active!"
+  when: "'Status: active' not in ufw_status.stdout"
+
+
+- name: "{{ f_this_file_name }} | 17 (additional of mine) / open tomcat port on the firewall"
+  community.general.ufw:
+    rule: allow
+    port: '8080'
+    comment: tomcat server
+
+- name: "{{ f_this_file_name }} | Allow port range 60000-61000"
+  community.general.ufw:
+    rule: allow
+    port: 60000:61000
+    proto: tcp
+    comment: My port range
+
+- name: "{{ f_this_file_name }} | UFW - Allow SSH connections"
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: "{{ f_this_file_name }} | UFW - Enable and deny by default"
+  community.general.ufw:
+    state: enabled
+    default: deny

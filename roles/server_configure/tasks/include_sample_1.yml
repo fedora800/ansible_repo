@@ -1,0 +1,32 @@
+---
+# include_sample_1.yml
+
+- name: Setting fact for include_sample_1.yml
+  ansible.builtin.set_fact:
+    f_this_file_name: "include_sample_1.yml"
+  no_log: true  # This will suppress the output of this task
+
+- name: "{{ f_this_file_name }} | IS1-01 - Print some remote host name information"
+  debug:
+    msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+  #when: v_is1_01_hostinfo is defined and v_is1_01_hostinfo
+  when: v_run_task == "IS1-01"
+  # tags:
+  #   - t_is1_show_hostinfo
+
+- name: "{{ f_this_file_name }} | IS1-02 - Display total RAM"
+  debug:
+    msg: "Total RAM is {{ ansible_memory_mb.real.total }} MB"
+  #when: v_is1_02_ram is defined and v_is1_02_ram
+  when: v_run_task == "IS1-02"
+  # tags:
+  #   - t_is1_show_ram
+
+- name: "{{ f_this_file_name }} | IS1-03 - Display IPv4 addresses"
+  debug:
+    msg: "IPv4 Addresses: {{ ansible_all_ipv4_addresses | default([]) }}"
+  #when: v_is1_03_ip06 is defined and v_is1_03_ip06
+  when: v_run_task == "IS1-03"
+  # tags:
+  #   - t_is1_show_ip4
+

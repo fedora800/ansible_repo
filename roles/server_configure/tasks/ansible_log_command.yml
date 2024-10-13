@@ -1,0 +1,27 @@
+---
+# ansible_log_command.yml
+
+- name: Capture and log ansible-playbook command
+  block:
+    - name: Get ansible-playbook command
+      #  capture the command line of the parent process (which is the ansible-playbook command)
+      ansible.builtin.shell: "ps -p $PPID -o args="
+      register: ansible_command
+      changed_when: false
+      # below 2 options will ensure that this task only runs once on the control node, not on every managed node
+      delegate_to: localhost
+      run_once: true
+
+    - name: Log ansible-playbook command
+      ansible.builtin.debug:
+        msg: "Ansible command: {{ ansible_command.stdout }}"
+      run_once: true
+
+    - name: Write ansible-playbook command to log file
+      # writes the command to a separate log file
+      ansible.builtin.copy:
+        content: "Ansible command: {{ ansible_command.stdout }}\n"
+        dest: "~/ansible_commands.log"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true

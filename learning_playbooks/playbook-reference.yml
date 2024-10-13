@@ -6,7 +6,11 @@
 #-- 02C - Import - call very specific tasks from another file in a very specific order - using tags AND when conditionals
 #-- 02D - Import - call very specific tasks from another file in a very specific order - using conditional tags
 #-- 03  - Defining a tag just once for all tasks in the file using a block
-#-- 04  - include_tasks key points todo
+#-- P04  - include_tasks key points todo
+#-- P05  - include_tasks functionality and running specific tasks in a very specific order
+#-- P06  - Difference between variable and set_fact todo
+#-- P07  - How to use set_fact module
+#-- P08  - Debugging
 
 # --------------------------------------------------------------------------------
 
@@ -143,7 +147,9 @@ The third import_tasks uses the new value set by the second set_fact ("another_t
 - name: Task 3 - Upgrade system
   apt:
     upgrade: dist
-  when: run_task_3 | bool
+  when:                             # OR condition below
+    - v_run_task_3 == "yes"
+    - v_which_task == "IS4-22"
 
 
 # --------------------------------------------------------------------------------
@@ -312,7 +318,7 @@ Key Points
 
 # --------------------------------------------------------------------------------
 
-#-- 04  - include_tasks key points todo
+#-- P04  - include_tasks key points todo
 
 INCLUDE_TASKS
 
@@ -325,6 +331,207 @@ Key Points
     Default Behavior: By default, if you don't specify tags when calling a playbook, all tasks will run unless you restrict them using tags.
 
 # --------------------------------------------------------------------------------
+#-- P05  - include_tasks functionality and running specific tasks in a very specific order
+---
+# test_main.yml
+
+- hosts: all
+  gather_facts: yes
+  become: true
+
+  vars:
+    # v_is1_03_ip06: true
+    # v_is1_01_hostinfo: true
+    xxxxv_is2_04_ip6info: true
+    # v_is2_01_cpuinfo: true
+
+  tasks:
+
+    # First inclusion for IS1-03
+    - name: Run task IS1-03 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_1.yml
+      vars:
+        v_run_task: "IS1-03"
+
+    # Second inclusion for IS1-01
+    - name: Run task IS1-01 second
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_1.yml
+      vars:
+        v_run_task: "IS1-01"
+    
+    - name: Run task IS2-04 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_2.yml
+      vars:
+        v_run_task: "IS2-04"
+
+    - name: Run task IS2-01 first
+      ansible.builtin.include_tasks: ../../server_configure/tasks/include_sample_2.yml
+      vars:
+        v_run_task: "IS2-01"
+
+#-- ansible.cfg
+display_skipped_hosts = false
+
+# when we run test_main.yaml, it will only run the SPECIFIC tasks required. and that too in VERY SPECIFIC ORDER
+
+---
+# include_sample_1.yml
+
+- name: Setting fact for include_sample_1.yml
+  ansible.builtin.set_fact:
+    f_this_file_name: "include_sample_1.yml"
+
+- name: "{{ f_this_file_name }} | IS1-01 - Print some remote host name information"
+  debug:
+    msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
+  #when: v_is1_01_hostinfo is defined and v_is1_01_hostinfo
+  when: v_run_task == "IS1-01"
+  # tags:
+  #   - t_is1_show_hostinfo
+
+- name: "{{ f_this_file_name }} | IS1-02 - Display total RAM"
+  debug:
+    msg: "Total RAM is {{ ansible_memory_mb.real.total }} MB"
+  #when: v_is1_02_ram is defined and v_is1_02_ram
+  when: v_run_task == "IS1-02"
+  # tags:
+  #   - t_is1_show_ram
+
+- name: "{{ f_this_file_name }} | IS1-03 - Display IPv4 addresses"
+  debug:
+    msg: "IPv4 Addresses: {{ ansible_all_ipv4_addresses | default([]) }}"
+  #when: v_is1_03_ip06 is defined and v_is1_03_ip06
+  when: v_run_task == "IS1-03"
+  # tags:
+  #   - t_is1_show_ip4
+
+---
+# include_sample_2.yml
+
+- name: Setting fact for include_sample_2.yml
+  ansible.builtin.set_fact:
+    f_this_file_name: "include_sample_2.yml"
+
+- name: "{{ f_this_file_name }} | IS2-01 - Display CPU information"
+  debug:
+    msg: "Architecture: {{ ansible_architecture }} | CPU core(s): {{ ansible_processor_cores }} | VCPUs: {{ ansible_processor_vcpus }}"
+  #when: v_is2_01_cpuinfo is defined and v_is2_01_cpuinfo
+  when: v_run_task == "IS2-01"
+
+
+- name: "{{ f_this_file_name }} | IS2-02 -Get disk utilization information for /home"
+  command: df -PTh /home
+  register: filesystem_info
+  #when: v_is2_02_diskinfo is defined and v_is2_02_diskinfo
+  when: v_run_task == "IS2-02"
+
+- name: "{{ f_this_file_name }} | IS2-03 - Display disk utilization information"
+  debug:
+    var: filesystem_info.stdout_lines
+  #when: v_is2_02_diskinfo is defined and v_is2_02_diskinfo
+  when: v_run_task == "IS2-02"   #linked with above task
+
+- name: "{{ f_this_file_name }} | IS2-04 - Display IPv6 addresses"
+  debug:
+    msg: "IPv6 Addresses: {{ ansible_all_ipv6_addresses | default([]) }}"
+  #when: v_is2_04_ip6info is defined and v_is2_04_ip6info
+  when: v_run_task == "IS2-04"
+
+
+# --------------------------------------------------------------------------------
+#-- P06  - Difference between variable and set_fact todo
+
+Differences Between Variables and set_fact
+Aspect	Variable	set_fact
+Scope	Scope is limited to the playbook or inventory where it's defined. It is static unless you modify the variable at the playbook level.	The fact persists for the duration of the playbook run and can be accessed in subsequent tasks.
+Usage	Use vars: to define variables. These are fixed until redefined.	Use set_fact to define dynamic facts that can change during the playbook execution.
+Persistence	Variables are static and do not change unless explicitly modified in the playbook.	Facts can be updated during the playbook execution, and changes will be reflected in subsequent tasks.
+Execution	Variables are typically defined once and remain constant.	set_fact can be executed at any point, allowing for conditional logic to change the values dynamically.
+Pros and Cons
+Using Variables
+
+Pros:
+
+    Simplicity: Easier to read and understand.
+    Performance: Slightly more efficient, as it doesn't involve creating a new fact.
+    Static Nature: If you need constant values, defining them as variables is straightforward.
+
+Cons:
+
+    Limited flexibility: Variables cannot change their value once set in the playbook unless you redefine them.
+
+Using set_fact
+
+Pros:
+
+    Flexibility: Can change based on conditions within the playbook. This is particularly useful in complex playbooks where the value might need to be adjusted based on previous task results.
+    Accessibility: set_fact makes variables accessible in any subsequent task.
+
+Cons:
+
+    Complexity: May make the playbook slightly more complex, especially for simple tasks where a static variable would suffice.
+    Overhead: Slightly more overhead due to creating a new fact, though this is usually negligible.
+
+Conclusion
+
+    Use variables when you need fixed, unchanging values throughout the playbook or when you want to keep your playbook simpler.
+    Use set_fact when you need to modify values dynamically during playbook execution or when the value depends on the outcome of previous tasks.
+
+If your task file name is always known at the start of the playbook and does not change, using a variable defined at the beginning might be sufficient. However, if the task file name may change based on certain conditions, using set_fact would be the more appropriate choice.
+
+
+# --------------------------------------------------------------------------------
+#-- P07  - How to use set_fact module
+
+- name: Setting host facts using key=value pairs, this format can only create strings or booleans
+  ansible.builtin.set_fact: one_fact="something" other_fact="{{ local_var }}"
+
+- name: Setting host facts using complex arguments
+  ansible.builtin.set_fact:
+    one_fact: something
+    other_fact: "{{ local_var * 2 }}"
+    another_fact: "{{ some_registered_var.results | map(attribute='ansible_facts.some_fact') | list }}"
+
+- name: Setting facts so that they will be persisted in the fact cache
+  ansible.builtin.set_fact:
+    one_fact: something
+    other_fact: "{{ local_var * 2 }}"
+    cacheable: yes
+
+- name: Creating list and dictionary variables
+  ansible.builtin.set_fact:
+    one_dict:
+        something: here
+        other: there
+    one_list:
+        - a
+        - b
+        - c
+# As of Ansible 1.8, Ansible will convert boolean strings ('true', 'false', 'yes', 'no')
+# to proper boolean values when using the key=value syntax, however it is still
+# recommended that booleans be set using the complex argument style:
+- name: Setting booleans using complex argument style
+  ansible.builtin.set_fact:
+    one_fact: yes
+    other_fact: no
+
+- name: Creating list and dictionary variables using 'shorthand' YAML
+  ansible.builtin.set_fact:
+    two_dict: {'something': here2, 'other': somewhere}
+    two_list: [1,2,3]
+
+# --------------------------------------------------------------------------------
+#-- P08  - Debugging
+
+- name: Debug - Checkpoint
+  debug:
+    msg: "Reached checkpoint {{ checkpoint_name }}"
+  vars:
+    checkpoint_name: "SCP-FINISHED"
+
+
+# --------------------------------------------------------------------------------
+
 
 
 

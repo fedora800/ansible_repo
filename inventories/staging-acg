@@ -13,3 +13,9 @@ acg-worker1         ansible_host=acg-worker1
 k8s_nodes_controlplane
 k8s_nodes_worker
 
+# group_names is a built-in variable that automatically contains a list of all the groups (defined in the inventory file) to which the current host (the host currently being executed) belongs.
+# acg-cpane1 is part of the group k8s_nodes_controlplane.
+# acg-worker1 is part of the group k8s_nodes_worker.
+# k8s_all_nodes_private_ips group is a parent group (created using the :children directive) that includes both k8s_nodes_controlplane and k8s_nodes_worker.
+
+

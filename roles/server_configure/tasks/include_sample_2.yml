@@ -1,0 +1,32 @@
+---
+# include_sample_2.yml
+
+- name: Setting fact for include_sample_2.yml
+  ansible.builtin.set_fact:
+    f_this_file_name: "include_sample_2.yml"
+  no_log: true  # This will suppress the output of this task    
+
+- name: "{{ f_this_file_name }} | IS2-01 - Display CPU information"
+  debug:
+    msg: "Architecture: {{ ansible_architecture }} | CPU core(s): {{ ansible_processor_cores }} | VCPUs: {{ ansible_processor_vcpus }}"
+  #when: v_is2_01_cpuinfo is defined and v_is2_01_cpuinfo
+  when: v_run_task == "IS2-01"
+
+
+- name: "{{ f_this_file_name }} | IS2-02 -Get disk utilization information for /home"
+  command: df -PTh /home
+  register: filesystem_info
+  #when: v_is2_02_diskinfo is defined and v_is2_02_diskinfo
+  when: v_run_task == "IS2-02"
+
+- name: "{{ f_this_file_name }} | IS2-03 - Display disk utilization information"
+  debug:
+    var: filesystem_info.stdout_lines
+  #when: v_is2_02_diskinfo is defined and v_is2_02_diskinfo
+  when: v_run_task == "IS2-02"   #linked with above task
+
+- name: "{{ f_this_file_name }} | IS2-04 - Display IPv6 addresses"
+  debug:
+    msg: "IPv6 Addresses: {{ ansible_all_ipv6_addresses | default([]) }}"
+  #when: v_is2_04_ip6info is defined and v_is2_04_ip6info
+  when: v_run_task == "IS2-04"

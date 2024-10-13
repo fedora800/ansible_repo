@@ -52,7 +52,7 @@
       tags:
         - just-this-task
 
-    - name: Allow specific user 'prod-support' to have passwordless sudo
+    - name: Allow specific user 'prod-support' to have passwordless sudo - ie run sudo without requiring a password
       lineinfile:
         dest: /etc/sudoers
         line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
