@@ -75,8 +75,16 @@
     #  sudo apt-get update
     #  sudo apt-get install -y kubelet kubeadm kubectl
     #  sudo apt-mark hold kubelet kubeadm kubectl
-    # The kubelet is now restarting every few seconds, as it waits in a crashloop and will log continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
-# 
+    # The kubelet is now STOPPING and RESTARTING every few seconds, as it waits in a crashloop and will log continuously in /var/log/syslog until we finish creating the cluster, ie after kubeadm init on control plane and kubeadm join on the worker nodes
+ 
+    # Oct 13 15:44:07 acg-worker1 systemd[1]: kubelet.service: Scheduled restart job, restart counter is at 542.
+    # Oct 13 15:44:07 acg-worker1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+    # Oct 13 15:44:07 acg-worker1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+    # Oct 13 15:44:07 acg-worker1 kubelet[5190]: E1013 15:44:07.574424    5190 run.go:72] "command failed" err="failed to load kubelet config file, path: /var/lib/kubelet/config.yaml, error: failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file \"/var/lib/kubelet/config.yaml\", error: open /var/lib/kubelet/config.yaml: no such file or directory"
+    # Oct 13 15:44:07 acg-worker1 systemd[1]: kubelet.service: Main process exited, code=exited, status=1/FAILURE
+    # Oct 13 15:44:07 acg-worker1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+
+
     - name: 3B-05 - Install kubelet
       apt:
         name: kubelet=1.31.*
@@ -102,14 +110,6 @@
         cmd: "sudo apt-mark hold kubelet kubeadm kubectl"
       become: true
 
-    #May 19 09:51:17 acg-worker2 systemd[1]: kubelet.service: Scheduled restart job, restart counter is at 1016.
-    #May 19 09:51:17 acg-worker2 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
-    #May 19 09:51:17 acg-worker2 systemd[1]: Started kubelet: The Kubernetes Node Agent.
-    #May 19 09:51:17 acg-worker2 kubelet[8506]: E0519 09:51:17.390243    8506 run.go:74] "command failed" err="failed to load kubelet config file, path: /var/lib/kubelet/config.yaml, error: faile
-    #d to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file \"/var/lib/kubelet/config.yaml\", error: open /var/lib/kubelet/config.yaml: no such file
-    #or directory"
-    #May 19 09:51:17 acg-worker2 systemd[1]: kubelet.service: Main process exited, code=exited, status=1/FAILURE
-    #May 19 09:51:17 acg-worker2 systemd[1]: kubelet.service: Failed with result 'exit-code'.
 
 
 

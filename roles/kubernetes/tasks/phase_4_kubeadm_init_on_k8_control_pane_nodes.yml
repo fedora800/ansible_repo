@@ -1,4 +1,6 @@
 ---
+# phase_4_kubeadm_init_on_k8_control_pane_nodes.yml
+
 #--------------------------------------------------------------------------------
 #phase 4 -  steps to do on *ONLY* on control pane
 # that too only on 1 control plane and not the rest, if we have any
@@ -9,10 +11,92 @@
 
 #--------------------------------------------------------------------------------
 
-- hosts: k8s_nodes_control
+- hosts: k8s_nodes_controlplane
+  gather_facts: yes
   become: true
+  
+  vars_prompt:
+    - name: "pod_network_cidr"
+      prompt: "Enter the Pod Network CIDR, example: 192.168.100.0/24"
+      private: no
+
+    - name: "k8s_master_ip"
+      prompt: "Enter the Apiserver advertise address, example: 192.168.0.26"
+      private: no
+
+    - name: "pod_network_manifest_file"
+      prompt: "Enter the Pod network manifest file URL, Your choice could be flannel, weave or calico, etc."
+      private: no
+
+    - name: "rbac_manifest_file"
+      prompt: "Enter the RBAC manifest file URL"
+      private: no
+
 
   tasks:
+
+    - name: 4-01 - Initializing the Kubernetes Cluster
+      command: kubeadm init --pod-network-cidr "{{ pod_network_cidr }}"  --apiserver-advertise-address "{{ k8s_master_ip }}"
+      run_once: true
+      delegate_to: "{{ k8s_master_ip }}"
+
+    - pause: seconds=30
+
+
+  - name: Create directory for kube config.
+    become_user: k8s5gc
+    become_method: sudo
+    become: yes
+    file:
+      path: /home/{{ansible_user }}/.kube
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0755
+
+  - name: Copy /etc/kubernetes/admin.conf to user home directory /home/{{ ansible_user }}/.kube/config.
+    become_user: root
+    become_method: sudo
+    become: yes
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: /home/{{ ansible_user }}/.kube/config
+      remote_src: yes
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0644'
+
+  - pause: seconds=30
+
+  - name: Remove the cache directory.
+    become_user: k8s5gc
+    become_method: sudo
+    become: yes
+    file:
+      path: /home/{{ ansible_user }}/.kube/cache
+      state: absent
+
+  - name: Create Pod Network & RBAC.
+    become_user: k8s5gc
+    become_method: sudo
+    become: yes
+    command: "{{ item }}"
+    with_items:
+      - kubectl apply -f {{ pod_network_manifest_file }}
+      - kubectl apply -f {{ rbac_manifest_file }}
+
+  - pause: seconds=30
+
+  - name: Get the token for joining the nodes with Kuberentes master.
+    shell: kubeadm token create  --print-join-command
+    register: kubernetes_join_command
+
+  - debug:
+      msg: "{{ kubernetes_join_command.stdout }}"
+
+  - name: Copy join command to local file.
+    become: false
+    local_action: copy content="{{ kubernetes_join_command.stdout_lines[0] }}" dest="/tmp/kubernetes_join_command" mode=0777
 
 # just copy pasted from various blogs, but not tested many of the ansible tasks for this phase
 # as need to store the output of init and do properly and did not get time for all
@@ -41,9 +125,38 @@
 
 #--------------------------------------------------------------------------------
 
+# before u do init, i need to finalize which CNI i will be using so that i make sure the pod network cidr for that CNI does NOT clash with my local subnet.
+# my local nodes are all ACloudGuru that runs on AWS and are on ens5 interface of 172.31.X.X subnet
+# so i chose calico which has a pod network cidr of 192.168.0.0/16 and so will not clash
+# which means all PODS will have 192.168.X.X IP address and all NODES will have the 172.31.X.X IP addresses
+# also note that when SERVICES are created, they will have 10.X.X.X IP addresses under CLUSTER-IP
+
+# i also MUST open below ports for calico on ALL nodes
+# https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#network-requirements
+# i had a big problem for many months due to not opening firewall for calico ports above where i saw kube-apiserver using 50-80% most of the time (compared to <10% now) and 1 of the calico pods was 0/1 throughout
+# #cmd ref -> sudo ufw allow 8888/tcp comment 'my webserver #1 port'
+# # required by calico
+# sudo ufw allow   179/tcp comment 'calico - BGP'
+# sudo ufw allow  4789/udp comment 'calico - with VXLAN enabled'
+# sudo ufw allow  5473/tcp comment 'calico - with Typha enabled'
+# sudo ufw allow 51820/tcp comment 'calico - with IPv4 Wireguard enabled'
+# sudo ufw allow 51821/tcp comment 'calico - with IPv6 Wireguard enabled'
+# # calico needs below to be open, which should have been already at k8s install time
+# 6443/tcp                   ALLOW IN    Anywhere                   # k8 API server
+# 443/tcp                    ALLOW IN    Anywhere                   # HTTPS port
+# 2379:2380/tcp              ALLOW IN    Anywhere                   # k8 etcd server client API
 
 #--------------------------------------------------------------------------------
 # step 1 - init using kubeadm
+
+#$ kubeadm version
+#kubeadm version: &version.Info{Major:"1", Minor:"28", GitVersion:"v1.28.10", GitCommit:"21be1d76a90bc00e2b0f6676a664bdf097224155", GitTreeState:"clean", BuildDate:"2024-05-14T10:51:30Z", GoVersion:"go1.21.9", Compiler:"gc", Platform:"linux/amd64"}
+
+#kubeadm init    (and do with --v=5)
+# other example ways - 
+#   sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23 --v=5      # where advertise address in the private ip of the control plane node
+#   sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --kubernetes-version 1.26.0 --v=5   (this one i did for 1.26 version worked on 07-May-2023, best to use this version for now)
+#   --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem  # this will allow us to ignore errors if our nodes have less mem or cpu
 
     - name: initialize the cluster (this could take some time)
       shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml >> kubeadm_cluster_initializing.log
@@ -58,38 +171,9 @@
         chdir: $HOME
         creates: kubeadm_cluster_initializing.log
 
-#--------------------------------------------------------------------------------
-# before u do init, i need to finalize which CNI i will be using so that i make sure the pod network cidr for that CNI does NOT clash with my local subnet.
-# my local nodes are all ACloudGuru that runs on AWS and are on ens5 interface of 172.31.X.X subnet
-# so i chose calico which has a pod network cidr of 192.168.0.0/16 and so will not clash
-# which means all PODS will have 192.168.X.X IP address and all NODES will have the 172.31.X.X IP addresses
-# also note that when SERVICES are created, they will have 10.X.X.X IP addresses under CLUSTER-IP
-
-# i also MUST open below ports for calico on ALL nodes
-# https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#network-requirements
-# i had a big problem for many months due to not doing above where i saw kube-apiserver using 50-80% most of the time (compared to <10% now) and 1 of the calico pods was 0/1 throughout
-# #cmd ref -> sudo ufw allow 8888/tcp comment 'my webserver #1 port'
-# # required by calico
-# sudo ufw allow   179/tcp comment 'calico - BGP'
-# sudo ufw allow  4789/udp comment 'calico - with VXLAN enabled'
-# sudo ufw allow  5473/tcp comment 'calico - with Typha enabled'
-# sudo ufw allow 51820/tcp comment 'calico - with IPv4 Wireguard enabled'
-# sudo ufw allow 51821/tcp comment 'calico - with IPv6 Wireguard enabled'
-# # calico needs below to be open, which should have been already at k8s install time
-# 6443/tcp                   ALLOW IN    Anywhere                   # k8 API server
-# 443/tcp                    ALLOW IN    Anywhere                   # HTTPS port
-# 2379:2380/tcp              ALLOW IN    Anywhere                   # k8 etcd server client API
 
 
-#$ kubeadm version
-#kubeadm version: &version.Info{Major:"1", Minor:"28", GitVersion:"v1.28.10", GitCommit:"21be1d76a90bc00e2b0f6676a664bdf097224155", GitTreeState:"clean", BuildDate:"2024-05-14T10:51:30Z", GoVersion:"go1.21.9", Compiler:"gc", Platform:"linux/amd64"}
 
-
-#kubeadm init    (and do with --v=5)
-# other example ways - 
-#   sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.31.100.23 --v=5      # where advertise address in the private ip of the control plane node
-#   sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --kubernetes-version 1.26.0 --v=5   (this one i did for 1.26 version worked on 07-May-2023, best to use this version for now)
-#   --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem  # this will allow us to ignore errors if our nodes have less mem or cpu
 
 
 # https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart
@@ -278,7 +362,7 @@ $
 #  creates a bunch of certificates for various k8s components in /etc/kubernetes/*.conf
 #  creates the manifest files for the components in /etc/kubernetes/manifests/*.yml
 #  creates kubelet config file - /var/lib/kubelet/config.yaml
-#  stops and restarts the kubelet process
+#  stops and restarts the kubelet process but now the kubelet process does not die like before but stays UP
 #  we will see kubelet log in syslog change its error message to now say "Container runtime network not ready"
 #  the 2 coredns pods under kube-system will be in pending status as CNI is not yet installed
 #  various RBAC rules created for this node
@@ -431,7 +515,8 @@ sudo ufw allow 51821/udp  comment "Calico networking with IPv6 Wireguard enabled
 
 --------------------------------------------------------------------------------
 
-
+# the most recent i ran to create a kube cluster was 13-oct-2024, see below file for details -
+~/git-projects/ansible_repo/roles/kubernetes/kubeadm_init_acg_13oct2024.txt
 
 
 
