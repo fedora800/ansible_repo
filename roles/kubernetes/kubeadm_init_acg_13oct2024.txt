@@ -1,0 +1,346 @@
+
+installing kubernetes v1.31.1 on ubuntu 22.04
+---------------------------------------------
+# i used https://www.linuxtechi.com/install-kubernetes-on-ubuntu-22-04/, which was well organized
+
+--------------------------------------------------------------------------------
+### initialize the cluster using kubeadm ###
+# i am going to use calico, so refer to https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart point 3 where they suggest below cidr
+
+
+$ date
+Sun Oct 13 15:35:06 UTC 2024
+cloud_user@acg-cpane1:~
+$ sudo kubeadm version
+kubeadm version: &version.Info{Major:"1", Minor:"31", GitVersion:"v1.31.1", GitCommit:"948afe5ca072329a73c8e79ed5938717a5cb3d21", GitTreeState:"clean", BuildDate:"2024-09-11T21:26:49Z", GoVe
+rsion:"go1.22.6", Compiler:"gc", Platform:"linux/amd64"}
+cloud_user@acg-cpane1:~
+$ sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --v=5
+I1013 15:35:11.838011    4947 initconfiguration.go:123] detected and using CRI socket: unix:///var/run/containerd/containerd.sock
+I1013 15:35:11.845865    4947 interface.go:432] Looking for default routes with IPv4 addresses
+I1013 15:35:11.845913    4947 interface.go:437] Default route transits interface "ens5"
+I1013 15:35:11.846060    4947 interface.go:209] Interface ens5 is up
+I1013 15:35:11.846150    4947 interface.go:257] Interface "ens5" has 3 addresses :[172.31.127.36/20 2a05:d018:85:e101:4721:5ffc:5a5e:e434/128 fe80::69:2cff:feb6:503f/64].
+I1013 15:35:11.846337    4947 interface.go:224] Checking addr  172.31.127.36/20.
+I1013 15:35:11.846355    4947 interface.go:231] IP found 172.31.127.36
+I1013 15:35:11.846385    4947 interface.go:263] Found valid IPv4 address 172.31.127.36 for interface "ens5".
+I1013 15:35:11.846398    4947 interface.go:443] Found active IP 172.31.127.36
+I1013 15:35:11.846448    4947 kubelet.go:195] the value of KubeletConfiguration.cgroupDriver is empty; setting it to "systemd"
+I1013 15:35:11.846525    4947 version.go:192] fetching Kubernetes version from URL: https://dl.k8s.io/release/stable-1.txt
+[init] Using Kubernetes version: v1.31.1
+[preflight] Running pre-flight checks
+I1013 15:35:12.299075    4947 checks.go:561] validating Kubernetes and kubeadm version
+I1013 15:35:12.299132    4947 checks.go:166] validating if the firewall is enabled and active
+I1013 15:35:12.314671    4947 checks.go:201] validating availability of port 6443
+I1013 15:35:12.315057    4947 checks.go:201] validating availability of port 10259
+I1013 15:35:12.315111    4947 checks.go:201] validating availability of port 10257
+I1013 15:35:12.315159    4947 checks.go:278] validating the existence of file /etc/kubernetes/manifests/kube-apiserver.yaml
+I1013 15:35:12.315687    4947 checks.go:278] validating the existence of file /etc/kubernetes/manifests/kube-controller-manager.yaml
+I1013 15:35:12.315732    4947 checks.go:278] validating the existence of file /etc/kubernetes/manifests/kube-scheduler.yaml
+I1013 15:35:12.315753    4947 checks.go:278] validating the existence of file /etc/kubernetes/manifests/etcd.yaml
+I1013 15:35:12.315788    4947 checks.go:428] validating if the connectivity type is via proxy or direct
+I1013 15:35:12.315812    4947 checks.go:467] validating http connectivity to first IP address in the CIDR
+I1013 15:35:12.315838    4947 checks.go:467] validating http connectivity to first IP address in the CIDR
+I1013 15:35:12.315994    4947 checks.go:102] validating the container runtime
+I1013 15:35:12.317473    4947 checks.go:637] validating whether swap is enabled or not
+I1013 15:35:12.317556    4947 checks.go:368] validating the presence of executable crictl
+I1013 15:35:12.317662    4947 checks.go:368] validating the presence of executable conntrack
+I1013 15:35:12.317732    4947 checks.go:368] validating the presence of executable ip
+I1013 15:35:12.317779    4947 checks.go:368] validating the presence of executable iptables
+I1013 15:35:12.317972    4947 checks.go:368] validating the presence of executable mount
+I1013 15:35:12.318332    4947 checks.go:368] validating the presence of executable nsenter
+I1013 15:35:12.318570    4947 checks.go:368] validating the presence of executable ebtables
+I1013 15:35:12.319251    4947 checks.go:368] validating the presence of executable ethtool
+I1013 15:35:12.319495    4947 checks.go:368] validating the presence of executable socat
+        [WARNING FileExisting-socat]: socat not found in system path
+I1013 15:35:12.319639    4947 checks.go:368] validating the presence of executable tc
+I1013 15:35:12.319689    4947 checks.go:368] validating the presence of executable touch
+I1013 15:35:12.319721    4947 checks.go:514] running all checks
+I1013 15:35:12.352798    4947 checks.go:399] checking whether the given node name is valid and reachable using net.LookupHost
+I1013 15:35:12.352921    4947 checks.go:603] validating kubelet version
+I1013 15:35:12.425475    4947 checks.go:128] validating if the "kubelet" service is enabled and active
+I1013 15:35:12.710664    4947 checks.go:201] validating availability of port 10250
+I1013 15:35:12.710855    4947 checks.go:327] validating the contents of file /proc/sys/net/ipv4/ip_forward
+I1013 15:35:12.710981    4947 checks.go:201] validating availability of port 2379
+I1013 15:35:12.711069    4947 checks.go:201] validating availability of port 2380
+I1013 15:35:12.711160    4947 checks.go:241] validating the existence and emptiness of directory /var/lib/etcd
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action beforehand using 'kubeadm config images pull'
+I1013 15:35:12.714917    4947 checks.go:832] using image pull policy: IfNotPresent
+W1013 15:35:12.716480    4947 checks.go:846] detected that the sandbox image "registry.k8s.io/pause:3.8" of the container runtime is inconsistent with that used by kubeadm.It is recommended
+to use "registry.k8s.io/pause:3.10" as the CRI sandbox image.
+I1013 15:35:12.731812    4947 checks.go:871] pulling: registry.k8s.io/kube-apiserver:v1.31.1
+I1013 15:35:17.514121    4947 checks.go:871] pulling: registry.k8s.io/kube-controller-manager:v1.31.1
+I1013 15:35:20.050082    4947 checks.go:871] pulling: registry.k8s.io/kube-scheduler:v1.31.1
+I1013 15:35:21.954610    4947 checks.go:871] pulling: registry.k8s.io/kube-proxy:v1.31.1
+I1013 15:35:24.930220    4947 checks.go:871] pulling: registry.k8s.io/coredns/coredns:v1.11.3
+I1013 15:35:27.926309    4947 checks.go:871] pulling: registry.k8s.io/pause:3.10
+I1013 15:35:28.760575    4947 checks.go:871] pulling: registry.k8s.io/etcd:3.5.15-0
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+I1013 15:35:33.843020    4947 certs.go:112] creating a new certificate authority for ca
+[certs] Generating "ca" certificate and key
+I1013 15:35:34.399295    4947 certs.go:473] validating certificate period for ca certificate
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [acg-cpane1 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 172.31.127.36
+]
+[certs] Generating "apiserver-kubelet-client" certificate and key                                                                                                                     [70/331]
+I1013 15:35:35.458612    4947 certs.go:112] creating a new certificate authority for front-proxy-ca
+[certs] Generating "front-proxy-ca" certificate and key
+I1013 15:35:35.688504    4947 certs.go:473] validating certificate period for front-proxy-ca certificate
+[certs] Generating "front-proxy-client" certificate and key
+I1013 15:35:35.940127    4947 certs.go:112] creating a new certificate authority for etcd-ca
+[certs] Generating "etcd/ca" certificate and key
+I1013 15:35:36.161840    4947 certs.go:473] validating certificate period for etcd/ca certificate
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [acg-cpane1 localhost] and IPs [172.31.127.36 127.0.0.1 ::1]
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [acg-cpane1 localhost] and IPs [172.31.127.36 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+I1013 15:35:37.391314    4947 certs.go:78] creating new public/private key files for signing service account users
+[certs] Generating "sa" key and public key
+[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+I1013 15:35:37.776168    4947 kubeconfig.go:111] creating kubeconfig file for admin.conf
+[kubeconfig] Writing "admin.conf" kubeconfig file
+I1013 15:35:38.032351    4947 kubeconfig.go:111] creating kubeconfig file for super-admin.conf
+[kubeconfig] Writing "super-admin.conf" kubeconfig file
+I1013 15:35:38.471448    4947 kubeconfig.go:111] creating kubeconfig file for kubelet.conf
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+I1013 15:35:38.715902    4947 kubeconfig.go:111] creating kubeconfig file for controller-manager.conf
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+I1013 15:35:39.023728    4947 kubeconfig.go:111] creating kubeconfig file for scheduler.conf
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+I1013 15:35:39.133863    4947 local.go:65] [etcd] wrote Static Pod manifest for a local etcd member to "/etc/kubernetes/manifests/etcd.yaml"
+[control-plane] Using manifest folder "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+I1013 15:35:39.138290    4947 manifests.go:103] [control-plane] getting StaticPodSpecs
+I1013 15:35:39.138608    4947 certs.go:473] validating certificate period for CA certificate
+I1013 15:35:39.138728    4947 manifests.go:129] [control-plane] adding volume "ca-certs" for component "kube-apiserver"
+I1013 15:35:39.138761    4947 manifests.go:129] [control-plane] adding volume "etc-ca-certificates" for component "kube-apiserver"
+I1013 15:35:39.138773    4947 manifests.go:129] [control-plane] adding volume "k8s-certs" for component "kube-apiserver"
+I1013 15:35:39.138795    4947 manifests.go:129] [control-plane] adding volume "usr-local-share-ca-certificates" for component "kube-apiserver"
+I1013 15:35:39.138809    4947 manifests.go:129] [control-plane] adding volume "usr-share-ca-certificates" for component "kube-apiserver"
+I1013 15:35:39.141268    4947 manifests.go:158] [control-plane] wrote static Pod manifest for component "kube-apiserver" to "/etc/kubernetes/manifests/kube-apiserver.yaml"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+I1013 15:35:39.141339    4947 manifests.go:103] [control-plane] getting StaticPodSpecs
+I1013 15:35:39.141770    4947 manifests.go:129] [control-plane] adding volume "ca-certs" for component "kube-controller-manager"
+I1013 15:35:39.141784    4947 manifests.go:129] [control-plane] adding volume "etc-ca-certificates" for component "kube-controller-manager"
+I1013 15:35:39.141800    4947 manifests.go:129] [control-plane] adding volume "flexvolume-dir" for component "kube-controller-manager"
+I1013 15:35:39.141811    4947 manifests.go:129] [control-plane] adding volume "k8s-certs" for component "kube-controller-manager"
+I1013 15:35:39.141821    4947 manifests.go:129] [control-plane] adding volume "kubeconfig" for component "kube-controller-manager"
+I1013 15:35:39.141833    4947 manifests.go:129] [control-plane] adding volume "usr-local-share-ca-certificates" for component "kube-controller-manager"
+I1013 15:35:39.141843    4947 manifests.go:129] [control-plane] adding volume "usr-share-ca-certificates" for component "kube-controller-manager"
+I1013 15:35:39.144422    4947 manifests.go:158] [control-plane] wrote static Pod manifest for component "kube-controller-manager" to "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+I1013 15:35:39.144646    4947 manifests.go:103] [control-plane] getting StaticPodSpecs
+I1013 15:35:39.144990    4947 manifests.go:129] [control-plane] adding volume "kubeconfig" for component "kube-scheduler"
+I1013 15:35:39.145605    4947 manifests.go:158] [control-plane] wrote static Pod manifest for component "kube-scheduler" to "/etc/kubernetes/manifests/kube-scheduler.yaml"
+I1013 15:35:39.145649    4947 kubelet.go:68] Stopping the kubelet
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Starting the kubelet
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests"
+[kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+[kubelet-check] The kubelet is healthy after 1.002790336s
+[api-check] Waiting for a healthy API server. This can take up to 4m0s
+[api-check] The API server is healthy after 31.501987017s
+I1013 15:36:13.015880    4947 kubeconfig.go:665] ensuring that the ClusterRoleBinding for the kubeadm:cluster-admins Group exists
+I1013 15:36:13.017753    4947 kubeconfig.go:738] creating the ClusterRoleBinding for the kubeadm:cluster-admins Group by using super-admin.conf
+I1013 15:36:13.037298    4947 uploadconfig.go:112] [upload-config] Uploading the kubeadm ClusterConfiguration to a ConfigMap
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+I1013 15:36:13.137394    4947 uploadconfig.go:126] [upload-config] Uploading the kubelet component config to a ConfigMap
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+I1013 15:36:13.163589    4947 uploadconfig.go:131] [upload-config] Preserving the CRISocket information for the control-plane node
+I1013 15:36:13.163668    4947 patchnode.go:31] [patchnode] Uploading the CRI Socket information "unix:///var/run/containerd/containerd.sock" to the Node API object "acg-cpane1" as an annotation
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node acg-cpane1 as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node acg-cpane1 as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+[bootstrap-token] Using token: blyrz1.nfypew4hzv04lcpo
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+I1013 15:36:13.283118    4947 clusterinfo.go:47] [bootstrap-token] loading admin kubeconfig
+I1013 15:36:13.284096    4947 clusterinfo.go:58] [bootstrap-token] copying the cluster from admin.conf to the bootstrap kubeconfig
+I1013 15:36:13.284400    4947 clusterinfo.go:70] [bootstrap-token] creating/updating ConfigMap in kube-public namespace
+I1013 15:36:13.294829    4947 clusterinfo.go:84] creating the RBAC rules for exposing the cluster-info ConfigMap in the kube-public namespace
+I1013 15:36:13.417196    4947 request.go:632] Waited for 114.279096ms due to client-side throttling, not priority and fairness, request: POST:https://172.31.127.36:6443/apis/rbac.authorization.k8s.io/v1/namespaces/kube-public/rolebindings?timeout=10s
+I1013 15:36:13.440908    4947 kubeletfinalize.go:123] [kubelet-finalize] Assuming that kubelet client certificate rotation is enabled: found "/var/lib/kubelet/pki/kubelet-client-current.pem"
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+I1013 15:36:13.442506    4947 kubeletfinalize.go:177] [kubelet-finalize] Restarting the kubelet to enable client certificate rotation
+I1013 15:36:13.955841    4947 envvar.go:172] "Feature gate default state" feature="InformerResourceVersion" enabled=false
+I1013 15:36:13.956076    4947 envvar.go:172] "Feature gate default state" feature="WatchListClient" enabled=false
+[addons] Applied essential addon: CoreDNS
+I1013 15:36:14.416838    4947 request.go:632] Waited for 86.297759ms due to client-side throttling, not priority and fairness, request: POST:https://172.31.127.36:6443/apis/rbac.authorizatio
+n.k8s.io/v1/namespaces/kube-system/rolebindings?timeout=10s
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.127.36:6443 --token blyrz1.nfypew4hzv04lcpo \
+        --discovery-token-ca-cert-hash sha256:afc5d77e067ef4502e65f0c7c5daa977605d29deeec50a89caaecc8d3cd6d959
+cloud_user@acg-cpane1:~
+$
+
+--------------------------------------------------------------------------------
+# run some status checks
+
+$ kubectl cluster-info
+Kubernetes control plane is running at https://172.31.127.36:6443
+CoreDNS is running at https://172.31.127.36:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+cloud_user@acg-cpane1:~
+$ kubectl get nodes
+NAME         STATUS     ROLES           AGE   VERSION
+acg-cpane1   NotReady   control-plane   22m   v1.31.1
+
+--------------------------------------------------------------------------------
+### Installing a Pod network add-on ###
+# https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements
+# installing calico v3.28.2 which is compatible with kubernetes v1.31
+# https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises
+
+
+
+cloud_user@acg-cpane1:~
+$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/tigera-operator.yaml
+namespace/tigera-operator created
+customresourcedefinition.apiextensions.k8s.io/bgpconfigurations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/bgpfilters.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/bgppeers.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/blockaffinities.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/caliconodestatuses.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/clusterinformations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/felixconfigurations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/globalnetworkpolicies.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/globalnetworksets.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/hostendpoints.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamblocks.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamconfigs.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamhandles.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ippools.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipreservations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/kubecontrollersconfigurations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/networkpolicies.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/networksets.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/apiservers.operator.tigera.io created
+customresourcedefinition.apiextensions.k8s.io/imagesets.operator.tigera.io created
+customresourcedefinition.apiextensions.k8s.io/installations.operator.tigera.io created
+customresourcedefinition.apiextensions.k8s.io/tigerastatuses.operator.tigera.io created
+serviceaccount/tigera-operator created
+clusterrole.rbac.authorization.k8s.io/tigera-operator created
+clusterrolebinding.rbac.authorization.k8s.io/tigera-operator created
+deployment.apps/tigera-operator created
+cloud_user@acg-cpane1:~
+$
+
+$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/custom-resources.yaml
+installation.operator.tigera.io/default created
+apiserver.operator.tigera.io/default created
+
+
+$ watch kubectl get pods -o wide -n calico-system
+# and wait for all these (4) pods to come up
+# this will take around 2 mins to all be in running state
+# we will see that kubelet has NO ERRORS now in syslog
+$ kubectl get pods -n calico-system              
+NAME                                     READY   STATUS    RESTARTS   AGE
+calico-kube-controllers-f6cfb995-9pkfm   1/1     Running   0          100s
+calico-node-2dqss                        1/1     Running   0          100s
+calico-typha-559ffb48b9-ltc5r            1/1     Running   0          101s
+csi-node-driver-rz6fr                    2/2     Running   0          100s
+
+#node will now show ready
+$ kubectl get nodes -o wide
+NAME         STATUS   ROLES           AGE   VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION   CONTAINER-RUNTIME
+acg-cpane1   Ready    control-plane   26m   v1.31.1   172.31.127.36   <none>        Ubuntu 22.04.4 LTS   6.8.0-1016-aws   containerd://1.7.22
+
+# Control plane node isolation removal
+# By default, cluster will not schedule Pods on control plane nodes for security reasons. to enable this, run:
+cloud_user@acg-control1:~$ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+node/acg-control1 untainted
+
+
+--------------------------------------------------------------------------------
+++++++++ DO BELOW ON ALL WORKER NODES ONLY +++++++++++
+
+### Join the nodes to the cluster ###
+# remember to use sudo and --v=5 for the join command  (i forgot the --v=5)
+cloud_user@acg-worker1:~
+$ sudo kubeadm join 172.31.127.36:6443 --token blyrz1.nfypew4hzv04lcpo --discovery-token-ca-cert-hash sha256:afc5d77e067ef4502e65f0c7c5daa977605d29deeec50a89caaecc8d3cd6d959
+[sudo] password for cloud_user:
+[preflight] Running pre-flight checks
+        [WARNING FileExisting-socat]: socat not found in system path
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+[kubelet-check] The kubelet is healthy after 2.002091581s
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+
+--------------------------------------------------------------------------------
+
+### ALL DONE AND CHECKS ###
+
+cloud_user@acg-cpane1:~
+$ kubectl get nodes -o wide
+NAME          STATUS   ROLES           AGE     VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION   CONTAINER-RUNTIME
+acg-cpane1    Ready    control-plane   33m     v1.31.1   172.31.127.36    <none>        Ubuntu 22.04.4 LTS   6.8.0-1016-aws   containerd://1.7.22
+acg-worker1   Ready    <none>          2m39s   v1.31.1   172.31.126.141   <none>        Ubuntu 22.04.4 LTS   6.8.0-1016-aws   containerd://1.7.22
+
+
+cloud_user@acg-cpane1:~
+$ curl --insecure https://172.31.127.36:6443/version
+{
+  "major": "1",
+  "minor": "31",
+  "gitVersion": "v1.31.1",
+  "gitCommit": "948afe5ca072329a73c8e79ed5938717a5cb3d21",
+  "gitTreeState": "clean",
+  "buildDate": "2024-09-11T21:22:08Z",
+  "goVersion": "go1.22.6",
+  "compiler": "gc",
+  "platform": "linux/amd64"
+}cloud_user@acg-cpane1:~
+$
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
