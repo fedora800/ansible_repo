@@ -52,7 +52,7 @@
 
 - name: "{{ tasks_file_name }} | Update apt and install required system packages"
   apt:
-    pkg:
+    ansible.builtin.package:
       - curl
       - vim
       - git
@@ -66,11 +66,12 @@
     - print_action
 
 
-
-
-
-
-
+- name: "{{ tasks_file_name }} | Install various packages using variable defined in var directory"  # NOT-TESTED
+  apt:
+    ansible.builtin.package:
+      name: "{{ item }}"
+    loop:
+      - "{{ prerequisite_packages }}"
 
 # --------------------------------------------------------------------------------
 

@@ -1,0 +1,77 @@
+---
+# playbook file for installing kubernetes with kubeadm
+
+- hosts: acg_k8_nodes_private_ips
+#- hosts: all
+  become: true
+
+  tasks:
+
+  - name: Include Kubernetes setup phases dynamically
+    ansible.builtin.include_tasks: "{{ item }}"
+    loop:
+      - phase_1_check_prerequisites.yml
+      - phase_2A_preinstall_host_changes.yml
+      - phase_2B_preinstall_firewall_changes.yml
+      - phase_3A_install_on_all_k8_nodes_containerd.yml
+      - phase_3B_install_on_all_k8_nodes_kube_pkgs.yml
+      - phase_4_kubeadm_init_on_k8_control_pane_nodes.yml
+      - phase_5_join_on_k8_worker_nodes.yml
+      - phase_6_optional_k8_dashboard.yml
+    when: run_phase == "all" or item.split('_')[0] + "_" + item.split('_')[1] in run_phase
+
+
+
+#  - name: Call tasks from server_configure/swap.yml file		# TESTED-AND-WORKS
+#    ansible.builtin.include_role:
+#      name: server_configure
+#      tasks_from: swap
+#    tags:
+#      - server-tasks-file-1
+
+#  - name: Call tasks from server_configure/append_records_to_etc_hosts_file.yml file		# TESTED-AND-WORKS
+#    ansible.builtin.include_role:
+#      name: server_configure
+#      tasks_from: append_records_to_etc_hosts_file
+#    tags:
+#      - server-tasks-file-2
+
+  - import_tasks: phase_2_apply_pre-install_changes.yml
+    when: "'k8_nodes_private_ips' in group_names"
+    tags:
+      - server-tasks-file-2
+
+#  - name: Import XXXX
+#    ansible.builtin.import_tasks: swap.yml
+
+#  - import_tasks: phase_1_check_prerequisites.yml
+#    when: "'k8_nodes_private_ips' in group_names"
+#  - import_tasks: phase_2_steps_on_all_k8_nodes.yml
+#    when: "'k8_nodes_private_ips' in group_names"
+#  - import_tasks: phase_3_steps_on_k8_control_pane_nodes.yml
+#    when: "'k8_nodes_control' in group_names"
+#  - import_tasks: phase_4_steps_on_k8_worker_nodes.yml
+#    when: "'k8_nodes_worker' in group_names"
+#
+#
+
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#THINGS THAT WORK -
+## copy the hostname and IP mappings across all k8 hosts
+#ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/append_records_to_etc_hosts_file.yml --ask-become-pass
+## update and upgrade packages all the k8 hosts before we start
+#$ ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/server_configure/tasks/apt_update_and_upgrade.yml --ask-become-pass
+## all the firewall changes
+#ansible-playbook -i ~/git-projects/ansible_repo/inventories/staging ~/git-projects/ansible_repo/roles/kubernetes/tasks/all_firewall_changes.yml  --ask-become-pass 
+#--------------------------------------------------------------------------------
+
+# some playbooks to refer - 
+# https://github.com/DinmaMerciBoi/Jenkins-Terraform-Kubenetes-Ansible/tree/main/Kubernetes
+
+
+#--------------------------------------------------------------------------------
+
+
+
+

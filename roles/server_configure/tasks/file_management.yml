@@ -148,8 +148,10 @@
     backup: yes                                                         # will backup old one if any changes and add datetimestamp suffix to filename
     marker: "# {mark} ANSIBLE MANAGED BLOCK"                            # BEGIN and END will be put in place of mark by default and the block will be enclosed in these 2 marker lines
     block: |                                                            # text to insert between the marker lines. note there will be no leading spaces. 
-      172.31.127.36    acg-cpane1
-      172.31.126.141   acg-worker1
+      172.31.24.197   acg-cpane1
+      172.31.25.159   acg-worker1
+
+
 #  when: k8_install_phase_2A | default(false) | bool
   # tags:
   #   - k8_install_phase_2A-append_to_hosts_file
@@ -161,7 +163,7 @@
   debug:
     msg: "a-hostname={{ ansible_hostname }}  a-fqdn={{ ansible_fqdn }}  a-nodename={{ ansible_nodename }}"
   #when: v_is1_01_hostinfo is defined and v_is1_01_hostinfo
-  when: v_run_task == "IS1-01"
+  when: v_run_task == "FM-13"
 
 
 # Append line to a file - line by line but a group of them- but have not tested yet
@@ -222,10 +224,36 @@
   ansible.builtin.stat:
     path: /etc/apt/keyrings
   register: keyring_dir_stat
+  when: v_fm_copy_1 | default(false)   
 
 - name: Print directory status and permissions of /etc/apt/keyrings
   debug:
     msg: "Directory exists: {{ keyring_dir_stat.stat.exists }}, Permissions: {{ keyring_dir_stat.stat.mode }}"
+  when: v_fm_copy_1 | default(false)   
+
+- name: "{{ f_this_file_name }} | FM-20 - Create an nginx config file using a jinja template file"  # NOT-TESTED
+  # module used to process Jinja2 template files
+  # here it takes a source template and processes it and renders it to the destination file
+  # the 2 variables used by this task are defined in vars/main.yml
+  # the template file used by this task will be located at templates/nginx.conf.j2
+  # NOTE: templates dir is NOT created when role is created, need to manually create it
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  when: v_fm_copy_1 | default(false)   
+
+
+  # once rendered, resulting file /etc/nginx/nginx.conf will look like below - 
+# server {
+#     listen 80;
+#     server_name example.com;
+# 
+#     location / {
+#         root /var/www/html;
+#         index index.html;
+#     }
+# }
+
 
 
 - name: "{{ f_this_file_name }} | Debug - Exit file_management.yml"
