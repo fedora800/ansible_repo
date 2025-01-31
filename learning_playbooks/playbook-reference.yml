@@ -11,6 +11,7 @@
 #-- P06  - Difference between variable and set_fact todo
 #-- P07  - How to use set_fact module
 #-- P08  - Debugging
+#-- P09  - Using the vars dir in the role
 
 # --------------------------------------------------------------------------------
 
@@ -532,6 +533,18 @@ If your task file name is always known at the start of the playbook and does not
 
 # --------------------------------------------------------------------------------
 
+#-- P09  - Using the vars dir in the role
 
+# refer to server_configure/tasks/apt_pkgs_tasks.yml - "{{ tasks_file_name }} | Install various packages using variable defined in var directory"
+
+
+# --------------------------------------------------------------------------------
+
+#-- P10  - Using jinja templates
+# refer to server_configure/tasks/file_management.yml - "FM-20 - Create an nginx config file using a jinja template file"
+
+# --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
 
 

@@ -3,10 +3,10 @@ log_filename="/home/cloud_user/temp/ansible_playbook_{{ ansible_date_time.date }
 
 [k8s_nodes_controlplane]
 #acg-cpane1        ansible_host=172.31.118.17
-acg-cpane1        ansible_host=acg-cpane1
+acg-cpane1        ansible_host=acg-cpane1     ansible_python_interpreter=/usr/bin/python3.10
 
 [k8s_nodes_worker]
-acg-worker1         ansible_host=acg-worker1
+acg-worker1       ansible_host=acg-worker1    ansible_python_interpreter=/usr/bin/python3.10
 #acg-worker2         ansible_host=acg-worker2
 
 [k8s_all_nodes_private_ips:children]
@@ -17,5 +17,7 @@ k8s_nodes_worker
 # acg-cpane1 is part of the group k8s_nodes_controlplane.
 # acg-worker1 is part of the group k8s_nodes_worker.
 # k8s_all_nodes_private_ips group is a parent group (created using the :children directive) that includes both k8s_nodes_controlplane and k8s_nodes_worker.
+# setting the ansible_python_interpreter path explicitly removes the below warning - 
+#   [WARNING]: Platform linux on host acg-worker1 is using the discovered Python interpreter at /usr/bin/python3.10, but future installation of another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more information.
 
 

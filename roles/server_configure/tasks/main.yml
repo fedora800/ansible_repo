@@ -1,7 +1,9 @@
 ---
 # tasks file for server_configure
-# though this is a main.yml file, it is still a TASKS file and not a playbook file
+# though this is a main.yml file, it is still a TASKS file and not a playbook file as it is inside the tasks dir of a ROLE
+# contains a list of tasks that are executed when the role is applied.
 # so cannot contain play-level keywords like hosts, vars, roles, or tasks.
+# will be included automatically when the role is used in a playbook.
 
 
 - name: Print the hostnames in inventory

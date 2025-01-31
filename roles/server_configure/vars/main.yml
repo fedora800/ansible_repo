@@ -1,3 +1,15 @@
 ---
+# roles/server_configure/vars/main.yml
+
 # vars file for server_configure
+
+# for the task: Install various packages using variable defined in var directory
+prerequisite_packages:
+  - curl
+  - wget
+  - vim
+
+# for the task: FM-20 - Create an nginx config file using a jinja template file
+server_name: example.com
+document_root: /var/www/html
 
