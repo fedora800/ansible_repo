@@ -6,6 +6,7 @@
 # Section 03 - Memory related
 # Section 04 - Network related
 # Section 05 - Swap space related
+# Section 06 - Hostname related
 
 # -----------------------------------------------------------------------------------------------------
 
@@ -184,6 +185,9 @@
 #++++++++++++++++++++++++++++++++++++++++  this code got from check_disk_space.yml and deleted that file +++++++++++++++++++++++++++++ end +++++++++++
 
 
+
+# -----------------------------------------------------------------------------------------------------
+# Section 06 - Hostname related
 #++++++++++++++++++++++++++++++++++++++++  this code got from change_hostname.yml and deleted that file +++++++++++++++++++++++++++++ start +++++++++++
 
 # works
@@ -201,6 +205,7 @@
 - name: "{{ f_this_file_name }} | RSC-1-01 - Change the remote hostname using inventory name"
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
+#    name: "{{ hostvars[inventory_hostname] }}"
   tags:
     - k8_install_phase_2A-change_hostname
   when: v_todo | default(false)  

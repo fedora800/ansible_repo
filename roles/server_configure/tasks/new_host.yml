@@ -1,0 +1,25 @@
+
+# to build a new linux VM instance   (in progress)
+
+
+- name: "{{ f_this_file_name }} | RSC-1-01 - Change the remote hostname using inventory name" 
+
+- name: Install prerequisite packages
+  ansible.builtin.package:
+    name: "{{ prerequisite_packages }}"             # variable defined in vars/main.yml
+    state: present
+
+- name: Install common packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"             # variable defined in vars/main.yml
+    state: present
+
+- name: Install Distribution based packages
+  ansible.builtin.package:
+    name: "{{ distribution_based_packages }}"             # variable defined in vars/main.yml
+    state: present
+  # will need to mention which distribution we want to use from Debian or Redhat, todo
+
+
+
+

@@ -114,6 +114,25 @@
         - docker-buildx-plugin
         - docker-compose-plugin
 
+    - name: Ensure Docker is started and enabled at boot
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    # Make sure group user docker exists
+    - name: Ensure group "docker" exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    # To allow this ansible user to be able to manage docker as non-root user
+    - name: Append user {{ ansible_user }} to the group 'docker'
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
     # Below are 2 testing tasks to verify docker can run containers on the remote hosts after installation
     # https://www.digitalocean.com/community/tutorials/how-to-use-ansible-to-install-and-set-up-docker-on-ubuntu-22-04
     - name: Testing/ Pull default Docker image

@@ -9,6 +9,23 @@ prerequisite_packages:
   - wget
   - vim
 
+# other common packages required to be installed
+common_packages:
+  - get
+  - tar
+  - python3-pip
+
+# distribution based packages
+distribution_based_packages:
+  Debian:
+    - dnsutils
+    - build-essential
+    - python3-dev
+  RedHat:
+    - bind-utils
+    - gcc
+    - python3-devel
+
 # for the task: FM-20 - Create an nginx config file using a jinja template file
 server_name: example.com
 document_root: /var/www/html
